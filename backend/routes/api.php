@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\AuthController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use Illuminate\Support\Facades\Route;
@@ -22,5 +23,6 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
         Route::apiResource('categories', CategoryController::class)->parameters(['categories' => 'public_id']);
+        Route::apiResource('products', ProductController::class)->parameters(['products' => 'public_id']);
     });
 });

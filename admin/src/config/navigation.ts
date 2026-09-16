@@ -4,12 +4,12 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
   { path: '/', label: 'Dashboard', shortLabel: 'DB', description: 'Your Noure administration workspace.', implemented: true, page: 'dashboard' },
-  { path: '/products', label: 'Products', shortLabel: 'PR', description: 'Product management will be available in a future phase.', implemented: false, page: 'placeholder' },
+  { path: '/products', label: 'Products', shortLabel: 'PR', description: 'Manage products and variants.', implemented: true, page: 'products' },
   { path: '/categories', label: 'Categories', shortLabel: 'CA', description: 'Organize the catalog hierarchy and storefront navigation.', implemented: true, page: 'categories' },
   { path: '/inventory', label: 'Inventory', shortLabel: 'IN', description: 'Inventory management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Order management will be available in a future phase.', implemented: false, page: 'placeholder' },
@@ -20,5 +20,10 @@ export const adminRoutes: AdminRoute[] = [
 ]
 
 export function findAdminRoute(pathname: string): AdminRoute | undefined {
-  return adminRoutes.find((route) => route.path === pathname)
+  const direct = adminRoutes.find((route) => route.path === pathname)
+  if (direct) return direct
+  if (pathname === '/products/create') return { ...adminRoutes[1], path: pathname, page: 'product-create' }
+  if (/^\/products\/[^/]+\/edit$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-edit' }
+  if (/^\/products\/[^/]+$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-detail' }
+  return undefined
 }

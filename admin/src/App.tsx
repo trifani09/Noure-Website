@@ -8,6 +8,10 @@ import { CategoriesPage } from './pages/CategoriesPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { ProductsPage } from './pages/ProductsPage'
+import { ProductCreatePage } from './pages/ProductCreatePage'
+import { ProductDetailPage } from './pages/ProductDetailPage'
+import { ProductEditPage } from './pages/ProductEditPage'
 import { Navigate } from './routing/Navigate'
 import { useRouter } from './routing/useRouter'
 
@@ -20,7 +24,8 @@ function App() {
 
   const route = findAdminRoute(pathname)
 
-  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : <PlaceholderPage route={route} />
+  const publicId = pathname.split('/')[2] ?? ''
+  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : route.page === 'products' ? <ProductsPage /> : route.page === 'product-create' ? <ProductCreatePage /> : route.page === 'product-detail' ? <ProductDetailPage publicId={publicId} /> : route.page === 'product-edit' ? <ProductEditPage publicId={publicId} /> : <PlaceholderPage route={route} />
 
   return (
     <ProtectedRoute>
