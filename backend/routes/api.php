@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AuthController;
+use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use Illuminate\Support\Facades\Route;
@@ -17,5 +18,9 @@ Route::prefix('v1')->group(function (): void {
             Route::get('me', [AuthController::class, 'me'])->name('me');
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         });
+    });
+
+    Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
+        Route::apiResource('categories', CategoryController::class)->parameters(['categories' => 'public_id']);
     });
 });

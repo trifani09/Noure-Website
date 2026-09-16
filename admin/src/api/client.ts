@@ -1,15 +1,18 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
 
-type ErrorEnvelope = { message?: string | null; meta?: { errors?: Array<{ code?: string; message?: string }> } }
+export type ApiErrorItem = { code?: string; field?: string; message?: string }
+type ErrorEnvelope = { message?: string | null; meta?: { errors?: ApiErrorItem[] } }
 
 export class ApiError extends Error {
   readonly status: number
   readonly code: string | null
+  readonly errors: ApiErrorItem[]
 
-  constructor(status: number, code: string | null, message: string) {
+  constructor(status: number, code: string | null, message: string, errors: ApiErrorItem[] = []) {
     super(message)
     this.status = status
     this.code = code
+    this.errors = errors
   }
 }
 
@@ -43,6 +46,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
       response.status,
       error?.meta?.errors?.[0]?.code ?? null,
       error?.meta?.errors?.[0]?.message ?? error?.message ?? 'The request could not be completed.',
+      error?.meta?.errors ?? [],
     )
   }
 
