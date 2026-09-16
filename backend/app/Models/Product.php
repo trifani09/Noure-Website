@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,17 @@ class Product extends Model
     public function discounts(): BelongsToMany
     {
         return $this->belongsToMany(Discount::class, 'discount_products');
+    }
+
+    /** @param Builder<Product> $query */
+    public function scopePubliclyVisible(Builder $query): void
+    {
+        $query
+            ->where('status', 'active')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->whereHas('variants', fn (Builder $variants) => $variants
+                ->where('is_active', true));
     }
 
     protected function casts(): array

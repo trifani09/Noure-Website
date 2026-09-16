@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,6 +42,12 @@ class Category extends Model
     public function discounts(): BelongsToMany
     {
         return $this->belongsToMany(Discount::class, 'discount_categories');
+    }
+
+    /** @param Builder<Category> $query */
+    public function scopePubliclyVisible(Builder $query): void
+    {
+        $query->where('is_active', true);
     }
 
     protected function casts(): array
