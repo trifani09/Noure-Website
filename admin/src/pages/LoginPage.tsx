@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/useAuth'
+import { useRouter } from '../routing/useRouter'
 
-export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) {
+export function LoginPage() {
   const { login } = useAuth()
+  const { navigate } = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -15,7 +17,7 @@ export function LoginPage({ onAuthenticated }: { onAuthenticated: () => void }) 
     setError(null)
     try {
       await login(email, password)
-      onAuthenticated()
+      navigate('/', { replace: true })
     } catch (caught: unknown) {
       setError(caught instanceof ApiError && caught.status === 401
         ? 'The email or password is incorrect.'
