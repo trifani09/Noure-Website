@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\V1\Admin\ProductImageController;
 use App\Http\Controllers\Api\V1\Admin\ProductImportController;
 use App\Http\Controllers\Api\V1\Admin\ProductVariantController;
 use App\Http\Controllers\Api\V1\Admin\VariantInventoryController;
+use App\Http\Controllers\Api\V1\CustomerAuthController;
+use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\HomepageController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
@@ -20,6 +22,20 @@ Route::prefix('v1')->group(function (): void {
     Route::get('products', [PublicProductController::class, 'index'])->name('api.v1.products.index');
     Route::get('products/{slug}', [PublicProductController::class, 'show'])->name('api.v1.products.show');
     Route::get('homepage', HomepageController::class)->name('api.v1.homepage');
+
+    Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
+        Route::post('register', [CustomerAuthController::class, 'register'])->name('register');
+        Route::post('login', [CustomerAuthController::class, 'login'])->name('login');
+        Route::middleware('auth:customer')->group(function (): void {
+            Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
+            Route::get('me', [CustomerAuthController::class, 'me'])->name('me');
+        });
+    });
+
+    Route::middleware('auth:customer')->prefix('customer')->name('api.v1.customer.')->group(function (): void {
+        Route::get('profile', [CustomerProfileController::class, 'show'])->name('profile.show');
+        Route::put('profile', [CustomerProfileController::class, 'update'])->name('profile.update');
+    });
 
     Route::prefix('admin/auth')->name('api.v1.admin.auth.')->group(function (): void {
         Route::post('login', [AuthController::class, 'login'])->name('login');

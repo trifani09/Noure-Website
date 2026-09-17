@@ -6,6 +6,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: siteUrl, changeFrequency: "daily", priority: 1 },
     { url: `${siteUrl}/products`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${siteUrl}/faq`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${siteUrl}/policies/privacy`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/policies/terms`, changeFrequency: "yearly", priority: 0.3 },
   ];
   try {
     const [products, categories] = await Promise.all([
