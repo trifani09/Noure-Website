@@ -4,7 +4,7 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'inventory' | 'inventory-detail' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'inventory' | 'inventory-detail' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
@@ -24,6 +24,7 @@ export function findAdminRoute(pathname: string): AdminRoute | undefined {
   if (direct) return direct
   if (pathname === '/products/create') return { ...adminRoutes[1], path: pathname, page: 'product-create' }
   if (/^\/products\/[^/]+\/variants$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-variants' }
+  if (/^\/products\/[^/]+\/media$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-media' }
   if (/^\/products\/[^/]+\/edit$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-edit' }
   if (/^\/products\/[^/]+$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-detail' }
   if (/^\/inventory\/[^/]+$/.test(pathname)) return { ...adminRoutes[3], path: pathname, page: 'inventory-detail' }
