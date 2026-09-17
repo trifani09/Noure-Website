@@ -8,3 +8,6 @@ export type Product = { public_id: string; name: string; slug: string; short_des
 export type ProductInput = Omit<Product, 'public_id' | 'primary_image' | 'primary_category' | 'variant_count' | 'lowest_price' | 'currency' | 'available' | 'created_at' | 'updated_at' | 'categories' | 'images' | 'options' | 'variants'> & { categories: { category_public_id: string; is_primary: boolean; sort_order: number }[]; images: ProductImage[]; options: ProductOption[]; variants: ProductVariant[] }
 export type ProductResponse = { data: Product; meta: Record<string, never>; message: null }
 export type ProductListResponse = { data: Product[]; meta: { pagination: Pagination }; message: null }
+export type VariantResponse = { data: ProductVariant; meta: Record<string, never>; message: null }
+export type GenerateVariantsInput = { option_values: Record<string, string[]>; defaults: { price_amount: number; compare_at_amount: number | null; currency: string; weight_grams: number | null; is_active: boolean }; sku_template: string }
+export type GenerateVariantsResponse = { data: { created: ProductVariant[]; existing: ProductVariant[] }; meta: Record<string, never>; message: null }
