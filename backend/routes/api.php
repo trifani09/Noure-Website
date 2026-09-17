@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\AuthController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\ProductImageController;
+use App\Http\Controllers\Api\V1\Admin\ProductImportController;
 use App\Http\Controllers\Api\V1\Admin\ProductVariantController;
 use App\Http\Controllers\Api\V1\Admin\VariantInventoryController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
@@ -25,6 +26,9 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
+        Route::post('product-imports/preview', [ProductImportController::class, 'preview'])->name('product-imports.preview');
+        Route::post('product-imports', [ProductImportController::class, 'store'])->name('product-imports.store');
+        Route::get('product-imports/templates/{type}', [ProductImportController::class, 'template'])->name('product-imports.template');
         Route::apiResource('categories', CategoryController::class)->parameters(['categories' => 'public_id']);
         Route::get('products/{product_public_id}/images', [ProductImageController::class, 'index'])->name('products.images.index');
         Route::post('products/{product_public_id}/images', [ProductImageController::class, 'store'])->name('products.images.store');

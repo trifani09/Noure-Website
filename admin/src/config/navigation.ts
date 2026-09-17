@@ -4,7 +4,7 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'inventory' | 'inventory-detail' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
@@ -12,6 +12,7 @@ export const adminRoutes: AdminRoute[] = [
   { path: '/products', label: 'Products', shortLabel: 'PR', description: 'Manage products and variants.', implemented: true, page: 'products' },
   { path: '/categories', label: 'Categories', shortLabel: 'CA', description: 'Organize the catalog hierarchy and storefront navigation.', implemented: true, page: 'categories' },
   { path: '/inventory', label: 'Inventory', shortLabel: 'IN', description: 'Review variant stock and record adjustments.', implemented: true, page: 'inventory' },
+  { path: '/import/products', label: 'Product import', shortLabel: 'PI', description: 'Validate and import products in bulk.', implemented: true, page: 'product-import' },
   { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Order management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/customers', label: 'Customers', shortLabel: 'CU', description: 'Customer management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/discounts', label: 'Discounts', shortLabel: 'DI', description: 'Discount management will be available in a future phase.', implemented: false, page: 'placeholder' },

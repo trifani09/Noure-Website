@@ -16,6 +16,7 @@ import { ProductVariantsPage } from './pages/ProductVariantsPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { InventoryDetailPage } from './pages/InventoryDetailPage'
 import { ProductMediaPage } from './pages/ProductMediaPage'
+import { ProductImportPage } from './pages/ProductImportPage'
 import { Navigate } from './routing/Navigate'
 import { useRouter } from './routing/useRouter'
 
@@ -29,7 +30,7 @@ function App() {
   const route = findAdminRoute(pathname)
 
   const publicId = pathname.split('/')[2] ?? ''
-  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : route.page === 'products' ? <ProductsPage /> : route.page === 'product-create' ? <ProductCreatePage /> : route.page === 'product-detail' ? <ProductDetailPage publicId={publicId} /> : route.page === 'product-edit' ? <ProductEditPage publicId={publicId} /> : route.page === 'product-variants' ? <ProductVariantsPage publicId={publicId} /> : route.page === 'product-media' ? <ProductMediaPage publicId={publicId} /> : route.page === 'inventory' ? <InventoryPage /> : route.page === 'inventory-detail' ? <InventoryDetailPage variantId={publicId} /> : <PlaceholderPage route={route} />
+  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : route.page === 'products' ? <ProductsPage /> : route.page === 'product-create' ? <ProductCreatePage /> : route.page === 'product-detail' ? <ProductDetailPage publicId={publicId} /> : route.page === 'product-edit' ? <ProductEditPage publicId={publicId} /> : route.page === 'product-variants' ? <ProductVariantsPage publicId={publicId} /> : route.page === 'product-media' ? <ProductMediaPage publicId={publicId} /> : route.page === 'product-import' ? <ProductImportPage /> : route.page === 'inventory' ? <InventoryPage /> : route.page === 'inventory-detail' ? <InventoryDetailPage variantId={publicId} /> : <PlaceholderPage route={route} />
 
   return (
     <ProtectedRoute>
