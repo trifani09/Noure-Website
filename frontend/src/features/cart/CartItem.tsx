@@ -1,0 +1,7 @@
+"use client";
+import Link from "next/link";
+import { SafeImage } from "@/components/common/SafeImage";
+import { formatMoney } from "@/lib/format";
+import { QuantitySelector } from "./QuantitySelector";
+import type { CartItem as CartItemType } from "./types";
+export function CartItem({ item, onUpdate, onRemove }: { item: CartItemType; onUpdate: (quantity: number) => void; onRemove: () => void }) { return <article className="flex gap-4 border-b border-line py-5"><Link href={`/product/${item.product.slug}`} className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-ivory">{item.image && <SafeImage fill sizes="96px" className="object-cover" src={item.image.url} alt={item.image.alt_text ?? item.product.name} />}</Link><div className="min-w-0 flex-1"><div className="flex justify-between gap-3"><div><Link href={`/product/${item.product.slug}`} className="font-serif text-lg hover:text-plum">{item.product.name}</Link><p className="mt-1 text-xs text-muted">{item.variant.selected_options.map(option => `${option.option_name}: ${option.value_label}`).join(" · ") || item.variant.title}</p></div><button type="button" onClick={onRemove} className="focus-ring text-xs uppercase tracking-widest text-muted hover:text-ink">Remove</button></div><div className="mt-5 flex items-center justify-between gap-3"><QuantitySelector quantity={item.quantity} onChange={onUpdate} /><p className="text-sm">{formatMoney(item.subtotal_amount, item.currency)}</p></div></div></article>; }

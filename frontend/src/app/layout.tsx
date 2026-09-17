@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { CartDrawer, CartProvider } from "@/features/cart";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,6 +14,6 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="antialiased"><body><AuthProvider><Header /><main className="min-h-[70vh]">{children}</main><Footer /></AuthProvider></body></html>
+    <html lang="en" className="antialiased"><body><AuthProvider><CartProvider><Header /><CartDrawer /><main className="min-h-[70vh]">{children}</main><Footer /></CartProvider></AuthProvider></body></html>
   );
 }
