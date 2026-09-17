@@ -1,0 +1,1 @@
+export function SectionHeading({eyebrow,title,body}:{eyebrow?:string;title:string;body?:string}){return <div className="mx-auto max-w-2xl text-center">{eyebrow&&<p className="eyebrow text-plum">{eyebrow}</p>}<h2 className="editorial-title mt-3 text-4xl md:text-5xl">{title}</h2>{body&&<p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted">{body}</p>}</div>}

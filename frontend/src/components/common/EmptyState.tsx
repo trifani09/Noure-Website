@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function EmptyState({title="Nothing found",body="Try adjusting your filters or explore the full collection."}:{title?:string;body?:string}){return <div className="col-span-full border border-line bg-ivory px-6 py-20 text-center"><h2 className="editorial-title text-3xl">{title}</h2><p className="mt-3 text-sm text-muted">{body}</p><Link href="/products" className="mt-7 inline-block border-b border-ink pb-1 text-xs font-semibold uppercase tracking-widest">View all pieces</Link></div>}
