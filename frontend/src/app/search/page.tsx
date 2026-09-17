@@ -1,3 +1,78 @@
-import type {Metadata} from "next";import {Breadcrumb} from "@/components/common/Breadcrumb";import {EmptyState} from "@/components/common/EmptyState";import {Container} from "@/components/layout/Container";import {Pagination} from "@/components/products/Pagination";import {ProductGrid} from "@/components/products/ProductGrid";import {getProducts} from "@/features/products";
-export const dynamic="force-dynamic";export const metadata:Metadata={title:"Search",description:"Search the Noure collection by product name."};const one=(value:string|string[]|undefined)=>Array.isArray(value)?value[0]:value;
-export default async function SearchPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){const raw=await searchParams;const query=one(raw.q)?.trim()??"";const page=one(raw.page)??"1";const result=query?await getProducts({search:query,page,per_page:20}):null;return <Container className="py-10 md:py-16"><Breadcrumb items={[{label:"Search"}]}/><div className="mt-10 border-b border-line pb-10"><p className="eyebrow text-plum">Discover</p><h1 className="editorial-title mt-3 text-5xl md:text-6xl">Search Noure</h1><form className="mt-8 flex max-w-2xl border-b border-ink" action="/search"><input name="q" defaultValue={query} aria-label="Search products" placeholder="What are you looking for?" className="w-full bg-transparent py-4 text-base outline-none placeholder:text-muted"/><button className="focus-ring px-4 text-xs font-semibold uppercase tracking-[.18em] hover:text-plum">Search</button></form></div><div className="mt-12">{!query?<EmptyState title="Begin your search" body="Enter a product name to explore the Noure collection."/>:result?.data.length?<><p className="mb-8 text-sm text-muted">{result.pagination.total} result{result.pagination.total===1?"":"s"} for “{query}”</p><ProductGrid products={result.data}/><Pagination pagination={result.pagination} params={{q:query}} path="/search"/></>:<EmptyState title={`No results for “${query}”`} body="Try a broader term, check the spelling, or explore the full collection."/>}</div></Container>}
+import type { Metadata } from "next";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Container } from "@/components/layout/Container";
+import { Pagination } from "@/components/products/Pagination";
+import { ProductGrid } from "@/components/products/ProductGrid";
+import { getProducts } from "@/features/products";
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Search",
+  description: "Search the Noure collection by product name.",
+};
+const one = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const query = one(raw.q)?.trim() ?? "";
+  const page = one(raw.page) ?? "1";
+  const result = query
+    ? await getProducts({ search: query, page, per_page: 20 })
+    : null;
+  return (
+    <Container className="py-10 md:py-16">
+      <Breadcrumb items={[{ label: "Search" }]} />
+      <div className="mt-10 border-b border-line pb-10">
+        <p className="eyebrow text-plum">Discover</p>
+        <h1 className="editorial-title mt-3 text-5xl md:text-6xl">
+          Search Noure
+        </h1>
+        <form
+          className="mt-8 flex max-w-2xl border-b border-ink"
+          action="/search"
+        >
+          <input
+            name="q"
+            defaultValue={query}
+            aria-label="Search products"
+            placeholder="What are you looking for?"
+            className="w-full bg-transparent py-4 text-base outline-none placeholder:text-muted"
+          />
+          <button className="focus-ring px-4 text-xs font-semibold uppercase tracking-[.18em] hover:text-plum">
+            Search
+          </button>
+        </form>
+      </div>
+      <div className="mt-12">
+        {!query ? (
+          <EmptyState
+            title="Begin your search"
+            body="Enter a product name to explore the Noure collection."
+          />
+        ) : result?.data.length ? (
+          <>
+            <p className="mb-8 text-sm text-muted">
+              {result.pagination.total} result
+              {result.pagination.total === 1 ? "" : "s"} for “{query}”
+            </p>
+            <ProductGrid products={result.data} />
+            <Pagination
+              pagination={result.pagination}
+              params={{ q: query }}
+              path="/search"
+            />
+          </>
+        ) : (
+          <EmptyState
+            title={`No results for “${query}”`}
+            body="Try a broader term, check the spelling, or explore the full collection."
+          />
+        )}
+      </div>
+    </Container>
+  );
+}

@@ -1,5 +1,98 @@
 @import "tailwindcss";
-:root { --noure-ink:#211c1a; --noure-espresso:#3a2d29; --noure-plum:#72525f; --noure-rose:#b9959d; --noure-taupe:#b7a79f; --noure-sand:#ded4ca; --noure-ivory:#f8f5ef; --noure-paper:#fffdf9; --noure-line:#e7dfd7; --noure-muted:#766d68; --space-section:clamp(4.5rem,8vw,8rem); --radius-soft:.125rem; }
-@theme inline { --color-ink:var(--noure-ink); --color-espresso:var(--noure-espresso); --color-plum:var(--noure-plum); --color-rose:var(--noure-rose); --color-taupe:var(--noure-taupe); --color-sand:var(--noure-sand); --color-ivory:var(--noure-ivory); --color-paper:var(--noure-paper); --color-line:var(--noure-line); --color-muted:var(--noure-muted); --font-sans:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif; --font-serif:"Iowan Old Style",Baskerville,"Times New Roman",serif; }
-*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;min-width:320px;background:var(--noure-paper);color:var(--noure-ink);font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5} button,input,select{font:inherit} button,a{transition:color .2s ease} img{color:transparent} ::selection{background:var(--noure-sand);color:var(--noure-ink)}
-.editorial-title{font-family:"Iowan Old Style",Baskerville,"Times New Roman",serif;font-weight:400;letter-spacing:-.035em;text-wrap:balance}.eyebrow{font-size:.69rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase}.page-shell{width:min(100% - 2rem,90rem);margin-inline:auto}.focus-ring:focus-visible{outline:2px solid var(--noure-plum);outline-offset:3px}.section-space{padding-block:var(--space-section)}.button-primary{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;background:var(--noure-ink);padding:.75rem 1.75rem;color:var(--noure-paper);font-size:.72rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase}.button-primary:hover{background:var(--noure-plum)}
+:root {
+  --noure-ink: #211c1a;
+  --noure-espresso: #3a2d29;
+  --noure-plum: #72525f;
+  --noure-rose: #b9959d;
+  --noure-taupe: #b7a79f;
+  --noure-sand: #ded4ca;
+  --noure-ivory: #f8f5ef;
+  --noure-paper: #fffdf9;
+  --noure-line: #e7dfd7;
+  --noure-muted: #766d68;
+  --space-section: clamp(4.5rem, 8vw, 8rem);
+  --radius-soft: 0.125rem;
+}
+@theme inline {
+  --color-ink: var(--noure-ink);
+  --color-espresso: var(--noure-espresso);
+  --color-plum: var(--noure-plum);
+  --color-rose: var(--noure-rose);
+  --color-taupe: var(--noure-taupe);
+  --color-sand: var(--noure-sand);
+  --color-ivory: var(--noure-ivory);
+  --color-paper: var(--noure-paper);
+  --color-line: var(--noure-line);
+  --color-muted: var(--noure-muted);
+  --font-sans: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: "Iowan Old Style", Baskerville, "Times New Roman", serif;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--noure-paper);
+  color: var(--noure-ink);
+  font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+a {
+  transition: color 0.2s ease;
+}
+img {
+  color: transparent;
+}
+::selection {
+  background: var(--noure-sand);
+  color: var(--noure-ink);
+}
+.editorial-title {
+  font-family: "Iowan Old Style", Baskerville, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.eyebrow {
+  font-size: 0.69rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.page-shell {
+  width: min(100% - 2rem, 90rem);
+  margin-inline: auto;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--noure-plum);
+  outline-offset: 3px;
+}
+.section-space {
+  padding-block: var(--space-section);
+}
+.button-primary {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  background: var(--noure-ink);
+  padding: 0.75rem 1.75rem;
+  color: var(--noure-paper);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.button-primary:hover {
+  background: var(--noure-plum);
+}

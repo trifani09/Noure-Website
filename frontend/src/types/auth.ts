@@ -6,4 +6,8 @@ export type Customer = {
   phone: string;
 };
 
-export type ApiValidationError = { code: string; field?: string; message: string };
+export type ApiValidationError = {
+  code: string;
+  field?: string;
+  message: string;
+};

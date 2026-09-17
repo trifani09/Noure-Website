@@ -1,1 +1,1 @@
-export {ContentPlaceholder} from "@/features/content/components/ContentPlaceholder";
+export { ContentPlaceholder } from "@/features/content/components/ContentPlaceholder";

@@ -1,7 +1,94 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { MobileNavigation, type NavigationItem } from "@/components/layout/MobileNavigation";
+import {
+  MobileNavigation,
+  type NavigationItem,
+} from "@/components/layout/MobileNavigation";
 import { useCart } from "@/features/cart";
-const links: NavigationItem[] = [{ href: "/", label: "Home" }, { href: "/products", label: "Shop" }, { href: "/products?sort=newest", label: "New arrivals" }, { href: "/about", label: "About" }, { href: "/contact", label: "Contact" }, { href: "/faq", label: "FAQ" }, { href: "/account", label: "Account" }];
-export function Header() { const [open, setOpen] = useState(false); const { cart, openDrawer } = useCart(); return <><div className="bg-espresso px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[.22em] text-ivory">Complimentary delivery across Indonesia</div><header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur"><div className="page-shell flex h-20 items-center justify-between gap-6"><button aria-label="Open menu" onClick={() => setOpen(true)} className="focus-ring p-2 lg:hidden"><span className="block h-px w-6 bg-ink"/><span className="mt-1.5 block h-px w-6 bg-ink"/></button><nav className="hidden items-center gap-8 lg:flex">{links.slice(0, 3).map(link => <Link className="focus-ring text-xs font-semibold uppercase tracking-[.14em] hover:text-plum" key={link.href} href={link.href}>{link.label}</Link>)}</nav><Link href="/" className="focus-ring editorial-title text-3xl tracking-[.2em]">NOURE</Link><div className="flex items-center justify-end gap-4 lg:min-w-[22rem]"><form action="/search" className="hidden border-b border-ink/40 md:flex"><input name="q" aria-label="Search products" placeholder="Search" className="w-32 bg-transparent py-1 text-xs outline-none"/><button className="focus-ring px-1 text-xs" aria-label="Submit search">⌕</button></form><Link href="/account" className="focus-ring text-xs font-semibold uppercase tracking-[.14em]">Account</Link><button type="button" onClick={openDrawer} className="focus-ring text-xs font-semibold uppercase tracking-[.14em]">Bag{cart?.item_count ? ` (${cart.item_count})` : ""}</button></div></div></header><MobileNavigation open={open} onClose={() => setOpen(false)} links={links}/></>; }
+const links: NavigationItem[] = [
+  { href: "/", label: "Home" },
+  { href: "/products", label: "Shop" },
+  { href: "/products?sort=newest", label: "New arrivals" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/account", label: "Account" },
+];
+export function Header() {
+  const [open, setOpen] = useState(false);
+  const { cart, openDrawer } = useCart();
+  return (
+    <>
+      <div className="bg-espresso px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[.22em] text-ivory">
+        Complimentary delivery across Indonesia
+      </div>
+      <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
+        <div className="page-shell flex h-20 items-center justify-between gap-6">
+          <button
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
+            className="focus-ring p-2 lg:hidden"
+          >
+            <span className="block h-px w-6 bg-ink" />
+            <span className="mt-1.5 block h-px w-6 bg-ink" />
+          </button>
+          <nav className="hidden items-center gap-8 lg:flex">
+            {links.slice(0, 3).map((link) => (
+              <Link
+                className="focus-ring text-xs font-semibold uppercase tracking-[.14em] hover:text-plum"
+                key={link.href}
+                href={link.href}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <Link
+            href="/"
+            className="focus-ring editorial-title text-3xl tracking-[.2em]"
+          >
+            NOURE
+          </Link>
+          <div className="flex items-center justify-end gap-4 lg:min-w-[22rem]">
+            <form
+              action="/search"
+              className="hidden border-b border-ink/40 md:flex"
+            >
+              <input
+                name="q"
+                aria-label="Search products"
+                placeholder="Search"
+                className="w-32 bg-transparent py-1 text-xs outline-none"
+              />
+              <button
+                className="focus-ring px-1 text-xs"
+                aria-label="Submit search"
+              >
+                ⌕
+              </button>
+            </form>
+            <Link
+              href="/account"
+              className="focus-ring text-xs font-semibold uppercase tracking-[.14em]"
+            >
+              Account
+            </Link>
+            <button
+              type="button"
+              onClick={openDrawer}
+              className="focus-ring text-xs font-semibold uppercase tracking-[.14em]"
+            >
+              Bag{cart?.item_count ? ` (${cart.item_count})` : ""}
+            </button>
+          </div>
+        </div>
+      </header>
+      <MobileNavigation
+        open={open}
+        onClose={() => setOpen(false)}
+        links={links}
+      />
+    </>
+  );
+}

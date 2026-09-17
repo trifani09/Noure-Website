@@ -1,2 +1,67 @@
-import Link from "next/link";import {SafeImage} from "@/components/common/SafeImage";import {formatMoney} from "@/lib/format";import type {ProductSummary} from "@/types/catalog";
-export function ProductCard({product,priority=false}:{product:ProductSummary;priority?:boolean}){return <article className="group"><Link href={`/product/${product.slug}`} className="focus-ring block" aria-label={`View ${product.name}`}><div className="relative aspect-[4/5] overflow-hidden bg-ivory">{product.primary_image?<SafeImage fill priority={priority} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]" src={product.primary_image.url} alt={product.primary_image.alt_text??product.name}/>:<div className="grid h-full place-items-center text-xs uppercase tracking-widest text-taupe">Noure</div>}<span className="absolute inset-x-0 bottom-0 translate-y-full bg-paper/90 py-3 text-center text-[10px] font-semibold uppercase tracking-[.16em] transition-transform duration-300 group-hover:translate-y-0 group-focus-within:translate-y-0">View piece</span>{!product.available&&<span className="absolute left-3 top-3 bg-paper px-2.5 py-1 text-[9px] uppercase tracking-widest">Unavailable</span>}</div><div className="pt-4"><p className="text-[10px] uppercase tracking-[.18em] text-muted">{product.primary_category?.name??"Noure"}</p><h3 className="mt-1 font-serif text-lg leading-tight sm:text-xl">{product.name}</h3><div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><span>{formatMoney(product.price.price_amount,product.price.currency)}</span>{product.price.compare_at_amount&&<span className="text-muted line-through">{formatMoney(product.price.compare_at_amount,product.price.currency)}</span>}</div></div></Link></article>}
+import Link from "next/link";
+import { SafeImage } from "@/components/common/SafeImage";
+import { formatMoney } from "@/lib/format";
+import type { ProductSummary } from "@/types/catalog";
+export function ProductCard({
+  product,
+  priority = false,
+}: {
+  product: ProductSummary;
+  priority?: boolean;
+}) {
+  return (
+    <article className="group">
+      <Link
+        href={`/product/${product.slug}`}
+        className="focus-ring block"
+        aria-label={`View ${product.name}`}
+      >
+        <div className="relative aspect-[4/5] overflow-hidden bg-ivory">
+          {product.primary_image ? (
+            <SafeImage
+              fill
+              priority={priority}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]"
+              src={product.primary_image.url}
+              alt={product.primary_image.alt_text ?? product.name}
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-xs uppercase tracking-widest text-taupe">
+              Noure
+            </div>
+          )}
+          <span className="absolute inset-x-0 bottom-0 translate-y-full bg-paper/90 py-3 text-center text-[10px] font-semibold uppercase tracking-[.16em] transition-transform duration-300 group-hover:translate-y-0 group-focus-within:translate-y-0">
+            View piece
+          </span>
+          {!product.available && (
+            <span className="absolute left-3 top-3 bg-paper px-2.5 py-1 text-[9px] uppercase tracking-widest">
+              Unavailable
+            </span>
+          )}
+        </div>
+        <div className="pt-4">
+          <p className="text-[10px] uppercase tracking-[.18em] text-muted">
+            {product.primary_category?.name ?? "Noure"}
+          </p>
+          <h3 className="mt-1 font-serif text-lg leading-tight sm:text-xl">
+            {product.name}
+          </h3>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <span>
+              {formatMoney(product.price.price_amount, product.price.currency)}
+            </span>
+            {product.price.compare_at_amount && (
+              <span className="text-muted line-through">
+                {formatMoney(
+                  product.price.compare_at_amount,
+                  product.price.currency,
+                )}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </article>
+  );
+}

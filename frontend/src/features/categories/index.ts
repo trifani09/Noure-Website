@@ -1,1 +1,1 @@
-export {getCategories,getCategory} from "@/services/categoryService";
+export { getCategories, getCategory } from "@/services/categoryService";

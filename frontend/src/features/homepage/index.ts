@@ -1,1 +1,1 @@
-export {getHomepageExperience} from "@/services/homepageService";
+export { getHomepageExperience } from "@/services/homepageService";

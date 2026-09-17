@@ -1,4 +1,56 @@
 "use client";
 import Link from "next/link";
-export type NavigationItem={href:string;label:string};
-export function MobileNavigation({open,onClose,links}:{open:boolean;onClose:()=>void;links:NavigationItem[]}){if(!open)return null;return <div className="fixed inset-0 z-50 bg-ink/30" onClick={onClose}><aside className="h-full w-[84%] max-w-sm bg-paper p-7" onClick={event=>event.stopPropagation()}><div className="flex items-center justify-between"><span className="editorial-title text-2xl tracking-[.18em]">NOURE</span><button aria-label="Close menu" onClick={onClose} className="focus-ring text-2xl">×</button></div><form action="/search" className="mt-10 flex border-b border-ink"><input name="q" aria-label="Search the collection" placeholder="Search the collection" className="w-full bg-transparent py-3 text-sm outline-none"/><button className="text-xs uppercase tracking-widest">Search</button></form><nav className="mt-10 flex flex-col">{links.map(link=><Link onClick={onClose} className="border-b border-line py-5 font-serif text-2xl" key={link.href} href={link.href}>{link.label}</Link>)}</nav></aside></div>}
+export type NavigationItem = { href: string; label: string };
+export function MobileNavigation({
+  open,
+  onClose,
+  links,
+}: {
+  open: boolean;
+  onClose: () => void;
+  links: NavigationItem[];
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-ink/30" onClick={onClose}>
+      <aside
+        className="h-full w-[84%] max-w-sm bg-paper p-7"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <span className="editorial-title text-2xl tracking-[.18em]">
+            NOURE
+          </span>
+          <button
+            aria-label="Close menu"
+            onClick={onClose}
+            className="focus-ring text-2xl"
+          >
+            ×
+          </button>
+        </div>
+        <form action="/search" className="mt-10 flex border-b border-ink">
+          <input
+            name="q"
+            aria-label="Search the collection"
+            placeholder="Search the collection"
+            className="w-full bg-transparent py-3 text-sm outline-none"
+          />
+          <button className="text-xs uppercase tracking-widest">Search</button>
+        </form>
+        <nav className="mt-10 flex flex-col">
+          {links.map((link) => (
+            <Link
+              onClick={onClose}
+              className="border-b border-line py-5 font-serif text-2xl"
+              key={link.href}
+              href={link.href}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+    </div>
+  );
+}

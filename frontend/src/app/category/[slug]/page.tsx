@@ -1,3 +1,97 @@
-import type {Metadata} from "next";import Link from "next/link";import {notFound} from "next/navigation";import {Breadcrumb} from "@/components/common/Breadcrumb";import {SafeImage} from "@/components/common/SafeImage";import {Pagination} from "@/components/products/Pagination";import {ProductGrid} from "@/components/products/ProductGrid";import {getCategory,getProducts,StorefrontApiError} from "@/services/api";
-export const dynamic="force-dynamic";type Props={params:Promise<{slug:string}>;searchParams:Promise<{page?:string}>};async function category(slug:string){try{return await getCategory(slug)}catch(error){if(error instanceof StorefrontApiError&&error.status===404)notFound();throw error}}export async function generateMetadata({params}:Props):Promise<Metadata>{const item=await category((await params).slug);return{title:item.name,description:item.description??`Explore ${item.name} by Noure.`,alternates:{canonical:`/category/${item.slug}`},openGraph:{title:item.name,description:item.description??undefined,images:item.image_url?[{url:item.image_url,alt:item.name}]:[]}}}
-export default async function CategoryPage({params,searchParams}:Props){const{slug}=await params;const page=(await searchParams).page??"1";const[item,products]=await Promise.all([category(slug),getProducts({category:slug,page,per_page:20})]);return <><div className="page-shell py-6"><Breadcrumb items={[{label:"Shop",href:"/products"},{label:item.name}]}/></div><section className="relative min-h-[22rem] overflow-hidden bg-espresso md:min-h-[30rem]">{item.image_url&&<SafeImage fill priority sizes="100vw" className="object-cover opacity-85" src={item.image_url} alt={item.name}/>}<div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent"/><div className="page-shell relative flex min-h-[22rem] items-end py-12 text-paper md:min-h-[30rem] md:py-16"><div className="max-w-2xl"><p className="eyebrow text-paper/75">Collection</p><h1 className="editorial-title mt-3 text-6xl md:text-7xl">{item.name}</h1>{item.description&&<p className="mt-5 max-w-xl text-sm leading-7 text-paper/85">{item.description}</p>}</div></div></section><section className="page-shell section-space"><div className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5"><p className="text-sm text-muted">{products.pagination.total} piece{products.pagination.total===1?"":"s"}</p><Link href="/products" className="text-xs uppercase tracking-widest hover:text-plum">View all collections</Link></div><ProductGrid products={products.data}/><Pagination pagination={products.pagination} params={{}} path={`/category/${slug}`}/></section></>}
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { SafeImage } from "@/components/common/SafeImage";
+import { Pagination } from "@/components/products/Pagination";
+import { ProductGrid } from "@/components/products/ProductGrid";
+import { getCategory, getProducts, StorefrontApiError } from "@/services/api";
+export const dynamic = "force-dynamic";
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+};
+async function category(slug: string) {
+  try {
+    return await getCategory(slug);
+  } catch (error) {
+    if (error instanceof StorefrontApiError && error.status === 404) notFound();
+    throw error;
+  }
+}
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const item = await category((await params).slug);
+  return {
+    title: item.name,
+    description: item.description ?? `Explore ${item.name} by Noure.`,
+    alternates: { canonical: `/category/${item.slug}` },
+    openGraph: {
+      title: item.name,
+      description: item.description ?? undefined,
+      images: item.image_url ? [{ url: item.image_url, alt: item.name }] : [],
+    },
+  };
+}
+export default async function CategoryPage({ params, searchParams }: Props) {
+  const { slug } = await params;
+  const page = (await searchParams).page ?? "1";
+  const [item, products] = await Promise.all([
+    category(slug),
+    getProducts({ category: slug, page, per_page: 20 }),
+  ]);
+  return (
+    <>
+      <div className="page-shell py-6">
+        <Breadcrumb
+          items={[{ label: "Shop", href: "/products" }, { label: item.name }]}
+        />
+      </div>
+      <section className="relative min-h-[22rem] overflow-hidden bg-espresso md:min-h-[30rem]">
+        {item.image_url && (
+          <SafeImage
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-85"
+            src={item.image_url}
+            alt={item.name}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+        <div className="page-shell relative flex min-h-[22rem] items-end py-12 text-paper md:min-h-[30rem] md:py-16">
+          <div className="max-w-2xl">
+            <p className="eyebrow text-paper/75">Collection</p>
+            <h1 className="editorial-title mt-3 text-6xl md:text-7xl">
+              {item.name}
+            </h1>
+            {item.description && (
+              <p className="mt-5 max-w-xl text-sm leading-7 text-paper/85">
+                {item.description}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+      <section className="page-shell section-space">
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
+          <p className="text-sm text-muted">
+            {products.pagination.total} piece
+            {products.pagination.total === 1 ? "" : "s"}
+          </p>
+          <Link
+            href="/products"
+            className="text-xs uppercase tracking-widest hover:text-plum"
+          >
+            View all collections
+          </Link>
+        </div>
+        <ProductGrid products={products.data} />
+        <Pagination
+          pagination={products.pagination}
+          params={{}}
+          path={`/category/${slug}`}
+        />
+      </section>
+    </>
+  );
+}

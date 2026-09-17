@@ -1,1 +1,20 @@
-import Link from "next/link";export default function NotFound(){return <div className="page-shell py-32 text-center"><p className="eyebrow text-plum">404</p><h1 className="editorial-title mt-4 text-6xl">This piece is no longer here</h1><p className="mt-5 text-sm text-muted">Return to the collection to continue browsing.</p><Link href="/products" className="mt-8 inline-block border-b border-ink pb-1 text-xs font-semibold uppercase tracking-widest">Shop the collection</Link></div>}
+import Link from "next/link";
+export default function NotFound() {
+  return (
+    <div className="page-shell py-32 text-center">
+      <p className="eyebrow text-plum">404</p>
+      <h1 className="editorial-title mt-4 text-6xl">
+        This piece is no longer here
+      </h1>
+      <p className="mt-5 text-sm text-muted">
+        Return to the collection to continue browsing.
+      </p>
+      <Link
+        href="/products"
+        className="mt-8 inline-block border-b border-ink pb-1 text-xs font-semibold uppercase tracking-widest"
+      >
+        Shop the collection
+      </Link>
+    </div>
+  );
+}
