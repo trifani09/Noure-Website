@@ -4,7 +4,7 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'content-banners' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
@@ -16,7 +16,7 @@ export const adminRoutes: AdminRoute[] = [
   { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Order management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/customers', label: 'Customers', shortLabel: 'CU', description: 'Customer management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/discounts', label: 'Discounts', shortLabel: 'DI', description: 'Discount management will be available in a future phase.', implemented: false, page: 'placeholder' },
-  { path: '/content', label: 'Content', shortLabel: 'CO', description: 'Content management will be available in a future phase.', implemented: false, page: 'placeholder' },
+  { path: '/content', label: 'Content', shortLabel: 'CO', description: 'Manage storefront homepage and marketing content.', implemented: true, page: 'content-banners' },
   { path: '/settings', label: 'Settings', shortLabel: 'SE', description: 'Settings will be available in a future phase.', implemented: false, page: 'placeholder' },
 ]
 
@@ -29,5 +29,6 @@ export function findAdminRoute(pathname: string): AdminRoute | undefined {
   if (/^\/products\/[^/]+\/edit$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-edit' }
   if (/^\/products\/[^/]+$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-detail' }
   if (/^\/inventory\/[^/]+$/.test(pathname)) return { ...adminRoutes[3], path: pathname, page: 'inventory-detail' }
+  if (pathname === '/content/banners') return { ...adminRoutes.find((route) => route.path === '/content')!, path: pathname, page: 'content-banners' }
   return undefined
 }

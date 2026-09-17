@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AuthController;
+use App\Http\Controllers\Api\V1\Admin\BannerController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\HomepageSectionController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\ProductImageController;
 use App\Http\Controllers\Api\V1\Admin\ProductImportController;
 use App\Http\Controllers\Api\V1\Admin\ProductVariantController;
 use App\Http\Controllers\Api\V1\Admin\VariantInventoryController;
+use App\Http\Controllers\Api\V1\HomepageController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +19,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('categories/{slug}', [PublicCategoryController::class, 'show'])->name('api.v1.categories.show');
     Route::get('products', [PublicProductController::class, 'index'])->name('api.v1.products.index');
     Route::get('products/{slug}', [PublicProductController::class, 'show'])->name('api.v1.products.show');
+    Route::get('homepage', HomepageController::class)->name('api.v1.homepage');
 
     Route::prefix('admin/auth')->name('api.v1.admin.auth.')->group(function (): void {
         Route::post('login', [AuthController::class, 'login'])->name('login');
@@ -26,6 +30,8 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
+        Route::apiResource('banners', BannerController::class)->except(['show'])->parameters(['banners' => 'public_id']);
+        Route::apiResource('homepage-sections', HomepageSectionController::class)->except(['show'])->parameters(['homepage-sections' => 'public_id']);
         Route::post('product-imports/preview', [ProductImportController::class, 'preview'])->name('product-imports.preview');
         Route::post('product-imports', [ProductImportController::class, 'store'])->name('product-imports.store');
         Route::get('product-imports/templates/{type}', [ProductImportController::class, 'template'])->name('product-imports.template');
