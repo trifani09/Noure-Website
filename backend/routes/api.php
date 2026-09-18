@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Admin\ProductImportController;
 use App\Http\Controllers\Api\V1\Admin\ProductVariantController;
 use App\Http\Controllers\Api\V1\Admin\VariantInventoryController;
 use App\Http\Controllers\Api\V1\CartController;
+use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\HomepageController;
@@ -27,6 +28,8 @@ Route::prefix('v1')->group(function (): void {
     Route::post('cart/items', [CartController::class, 'store'])->name('api.v1.cart.items.store');
     Route::put('cart/items/{id}', [CartController::class, 'update'])->whereNumber('id')->name('api.v1.cart.items.update');
     Route::delete('cart/items/{id}', [CartController::class, 'destroy'])->whereNumber('id')->name('api.v1.cart.items.destroy');
+    Route::get('checkout', [CheckoutController::class, 'show'])->name('api.v1.checkout.show');
+    Route::post('orders', [CheckoutController::class, 'store'])->name('api.v1.orders.store');
 
     Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
         Route::post('register', [CustomerAuthController::class, 'register'])->name('register');

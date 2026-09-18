@@ -11,9 +11,9 @@ export function CartSummary({ cart }: { cart: Cart }) {
       <p className="mt-3 text-xs leading-6 text-muted">
         Shipping and taxes are calculated at checkout.
       </p>
-      <button type="button" className="button-primary mt-6 w-full">
+      <Link href="/checkout" className="button-primary mt-6 w-full">
         Checkout
-      </button>
+      </Link>
       <Link
         href="/products"
         className="mt-4 block text-center text-xs font-semibold uppercase tracking-widest underline underline-offset-4"
