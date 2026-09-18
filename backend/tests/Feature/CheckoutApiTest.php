@@ -50,6 +50,7 @@ class CheckoutApiTest extends TestCase
         $this->assertDatabaseHas('orders', ['order_number' => $response->json('data.order_number'), 'customer_id' => null, 'grand_total_amount' => 300000]);
         $this->assertDatabaseHas('order_items', ['product_name' => 'Luna Dress', 'sku' => 'NOU-LUNA-M', 'quantity' => 2, 'total_amount' => 300000]);
         $this->assertDatabaseHas('carts', ['status' => 'converted']);
+        $this->assertDatabaseCount('cart_items', 0);
         $this->assertDatabaseHas('inventory_levels', ['id' => $this->level->id, 'reserved' => 3]);
         $this->assertDatabaseHas('inventory_movements', ['movement_type' => 'reservation', 'quantity_delta' => -2]);
     }
@@ -84,12 +85,38 @@ class CheckoutApiTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_price_change_is_rejected(): void
+    public function test_price_is_recalculated_from_current_variant_data(): void
     {
         [$token] = $this->guestCart(1);
         $this->variant->update(['price_amount' => 175000]);
         $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
-            ->assertConflict()->assertJsonPath('meta.errors.0.code', 'price_changed');
+            ->assertCreated()->assertJsonPath('data.items.0.unit_price_amount', 175000)
+            ->assertJsonPath('data.grand_total_amount', 175000);
+        $this->assertDatabaseHas('order_items', ['variant_id' => $this->variant->id, 'unit_price_amount' => 175000]);
+    }
+
+    public function test_inactive_variant_is_rejected(): void
+    {
+        [$token] = $this->guestCart(1);
+        $this->variant->update(['is_active' => false]);
+        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+            ->assertConflict()->assertJsonPath('meta.errors.0.code', 'variant_inactive');
+    }
+
+    public function test_expired_cart_is_rejected(): void
+    {
+        [$token, $cart] = $this->guestCart(1);
+        $cart->update(['expires_at' => now()->subMinute()]);
+        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+            ->assertConflict()->assertJsonPath('meta.errors.0.code', 'cart_expired');
+    }
+
+    public function test_invalid_cart_quantity_is_rejected(): void
+    {
+        [$token, $cart] = $this->guestCart(1);
+        $cart->items()->update(['quantity' => 0]);
+        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+            ->assertUnprocessable()->assertJsonPath('meta.errors.0.code', 'invalid_quantity');
     }
 
     public function test_transaction_rolls_back_order_items_and_reservations(): void

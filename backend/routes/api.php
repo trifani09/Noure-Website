@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\AuthController;
 use App\Http\Controllers\Api\V1\Admin\BannerController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\HomepageSectionController;
+use App\Http\Controllers\Api\V1\Admin\OrderController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\ProductImageController;
 use App\Http\Controllers\Api\V1\Admin\ProductImportController;
@@ -54,6 +55,9 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order_public_id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::put('orders/{order_public_id}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::apiResource('banners', BannerController::class)->except(['show'])->parameters(['banners' => 'public_id']);
         Route::apiResource('homepage-sections', HomepageSectionController::class)->except(['show'])->parameters(['homepage-sections' => 'public_id']);
         Route::post('product-imports/preview', [ProductImportController::class, 'preview'])->name('product-imports.preview');

@@ -1,0 +1,6 @@
+import { OrderStatusBadge } from './OrderStatusBadge'
+import type { OrderSummary } from './types'
+function money(amount: number, currency: string) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency, maximumFractionDigits: currency === 'IDR' ? 0 : 2 }).format(currency === 'IDR' ? amount : amount / 100) }
+export function OrderTable({ orders }: { orders: OrderSummary[] }) {
+  return <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-stone-50 text-xs uppercase text-stone-500"><tr><th className="p-3">Order number</th><th>Customer</th><th>Total</th><th>Payment status</th><th>Order status</th><th>Date</th><th>Action</th></tr></thead><tbody className="divide-y">{orders.map((order) => <tr key={order.public_id}><td className="p-3 font-medium">{order.order_number}</td><td><p>{order.customer.name}</p><p className="text-xs text-stone-500">{order.customer.email}</p></td><td>{money(order.grand_total_amount, order.currency)}</td><td><OrderStatusBadge status={order.payment_status} /></td><td><OrderStatusBadge status={order.status} /></td><td>{new Date(order.created_at).toLocaleDateString()}</td><td><a href={`/orders/${order.public_id}`} className="font-medium text-stone-900 hover:underline">View</a></td></tr>)}</tbody></table></div>
+}

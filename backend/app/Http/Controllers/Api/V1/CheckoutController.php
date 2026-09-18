@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreOrderRequest;
 use App\Http\Resources\Api\V1\CartResource;
 use App\Http\Resources\Api\V1\OrderResource;
+use App\Models\Cart;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,8 +41,10 @@ class CheckoutController extends Controller
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        [$cart, $token] = $this->cart($request);
+        $token = null;
         try {
+            $token = $request->cookie(self::COOKIE);
+            $cart = $this->orderCart($request);
             $order = $this->orders->create($cart, $this->customer(), $request->validated());
         } catch (CheckoutException $exception) {
             return $this->failure($exception, $token);
@@ -53,6 +56,34 @@ class CheckoutController extends Controller
     private function cart(Request $request): array
     {
         return $this->carts->resolve($this->customer(), $request->cookie(self::COOKIE));
+    }
+
+    private function orderCart(Request $request): Cart
+    {
+        $customer = $this->customer();
+        if ($customer) {
+            $cart = Cart::query()->where('customer_id', $customer->id)->where('status', 'active')->first();
+            if (! $cart) {
+                throw new CheckoutException('cart_not_found', 'No active cart was found.', 404);
+            }
+        } else {
+            $token = $request->cookie(self::COOKIE);
+            if (! $token) {
+                throw new CheckoutException('cart_not_found', 'No active cart was found.', 404);
+            }
+            $cart = Cart::query()->where('guest_token_hash', hash('sha256', $token))->first();
+            if (! $cart) {
+                throw new CheckoutException('cart_not_found', 'No active cart was found.', 404);
+            }
+        }
+        if ($cart->status === 'active' && $cart->expires_at?->isPast()) {
+            throw new CheckoutException('cart_expired', 'Your cart session has expired.');
+        }
+        if ($cart->status !== 'active') {
+            throw new CheckoutException('cart_expired', 'Your cart is no longer active.');
+        }
+
+        return $cart;
     }
 
     private function customer(): ?Customer

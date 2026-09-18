@@ -4,7 +4,7 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'content-banners' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'orders' | 'order-detail' | 'content-banners' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
@@ -13,7 +13,7 @@ export const adminRoutes: AdminRoute[] = [
   { path: '/categories', label: 'Categories', shortLabel: 'CA', description: 'Organize the catalog hierarchy and storefront navigation.', implemented: true, page: 'categories' },
   { path: '/inventory', label: 'Inventory', shortLabel: 'IN', description: 'Review variant stock and record adjustments.', implemented: true, page: 'inventory' },
   { path: '/import/products', label: 'Product import', shortLabel: 'PI', description: 'Validate and import products in bulk.', implemented: true, page: 'product-import' },
-  { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Order management will be available in a future phase.', implemented: false, page: 'placeholder' },
+  { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Review and manage customer orders.', implemented: true, page: 'orders' },
   { path: '/customers', label: 'Customers', shortLabel: 'CU', description: 'Customer management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/discounts', label: 'Discounts', shortLabel: 'DI', description: 'Discount management will be available in a future phase.', implemented: false, page: 'placeholder' },
   { path: '/content', label: 'Content', shortLabel: 'CO', description: 'Manage storefront homepage and marketing content.', implemented: true, page: 'content-banners' },
@@ -29,6 +29,7 @@ export function findAdminRoute(pathname: string): AdminRoute | undefined {
   if (/^\/products\/[^/]+\/edit$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-edit' }
   if (/^\/products\/[^/]+$/.test(pathname)) return { ...adminRoutes[1], path: pathname, page: 'product-detail' }
   if (/^\/inventory\/[^/]+$/.test(pathname)) return { ...adminRoutes[3], path: pathname, page: 'inventory-detail' }
+  if (/^\/orders\/[^/]+$/.test(pathname)) return { ...adminRoutes.find((route) => route.path === '/orders')!, path: pathname, page: 'order-detail' }
   if (pathname === '/content/banners') return { ...adminRoutes.find((route) => route.path === '/content')!, path: pathname, page: 'content-banners' }
   return undefined
 }

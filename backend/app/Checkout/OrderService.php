@@ -31,14 +31,14 @@ class OrderService
             $subtotal = 0;
             foreach ($items as $item) {
                 $variant = $variants->get($item->variant_id);
+                if ($item->quantity < 1) {
+                    throw new CheckoutException('invalid_quantity', 'An item in your cart has an invalid quantity.', 422);
+                }
                 if (! $variant || $variant->trashed() || ! $variant->product) {
                     throw new CheckoutException('variant_not_found', 'An item in your cart no longer exists.');
                 }
                 if (! $variant->is_active) {
                     throw new CheckoutException('variant_inactive', 'An item in your cart is no longer available.');
-                }
-                if ($item->unit_price_snapshot !== $variant->price_amount || $item->currency !== $variant->currency) {
-                    throw new CheckoutException('price_changed', 'A price in your cart has changed. Refresh your cart and try again.');
                 }
                 if ($variant->currency !== $cart->currency) {
                     throw new CheckoutException('currency_conflict', 'Cart items must use one currency.');
@@ -83,6 +83,7 @@ class OrderService
                 ]);
                 $this->reserve($variant->id, $item->quantity, $order);
             }
+            $cart->items()->delete();
             $cart->update(['status' => 'converted', 'converted_at' => now()]);
             if ($customer) {
                 $customer->update(['last_order_at' => now()]);
