@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\HomepageController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,9 @@ Route::prefix('v1')->group(function (): void {
     Route::delete('cart/items/{id}', [CartController::class, 'destroy'])->whereNumber('id')->name('api.v1.cart.items.destroy');
     Route::get('checkout', [CheckoutController::class, 'show'])->name('api.v1.checkout.show');
     Route::post('orders', [CheckoutController::class, 'store'])->name('api.v1.orders.store');
+    Route::post('orders/{order_public_id}/payment', [PaymentController::class, 'store'])->name('api.v1.orders.payment.store');
+    Route::get('orders/{order_public_id}/payment', [PaymentController::class, 'show'])->name('api.v1.orders.payment.show');
+    Route::post('payments/webhook', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
 
     Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
         Route::post('register', [CustomerAuthController::class, 'register'])->name('register');

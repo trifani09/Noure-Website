@@ -56,3 +56,18 @@ export type Order = {
   grand_total_amount: number;
   currency: string;
 };
+export type Payment = {
+  public_id: string;
+  order_public_id: string;
+  order_number: string;
+  provider: string;
+  provider_payment_id: string | null;
+  method_type: string;
+  status: "pending" | "authorized" | "paid" | "failed" | "cancelled" | "partially_refunded" | "refunded";
+  amount: number;
+  currency: string;
+  redirect_url: string | null;
+  token: string | null;
+  expires_at: string | null;
+  paid_at: string | null;
+};

@@ -14,7 +14,7 @@ class ListOrdersRequest extends CatalogRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'search' => ['sometimes', 'string', 'min:1', 'max:100'],
             'status' => ['sometimes', Rule::in(['pending', 'processing', 'shipped', 'completed', 'cancelled'])],
-            'payment_status' => ['sometimes', Rule::in(['unpaid', 'pending', 'paid', 'failed', 'refunded'])],
+            'payment_status' => ['sometimes', Rule::in(['unpaid', 'pending', 'authorized', 'paid', 'failed', 'cancelled', 'partially_refunded', 'refunded'])],
             'date_from' => ['sometimes', 'date_format:Y-m-d', 'before_or_equal:date_to'],
             'date_to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'sort' => ['sometimes', Rule::in(['newest', 'oldest', 'total_asc', 'total_desc', 'order_asc', 'order_desc'])],

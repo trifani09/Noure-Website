@@ -40,6 +40,6 @@ class AdminOrderQuery
 
     public function find(string $publicId): ?Order
     {
-        return Order::query()->where('public_id', $publicId)->with(['customer', 'items', 'payments'])->first();
+        return Order::query()->where('public_id', $publicId)->with(['customer', 'items', 'payments.transactions'])->first();
     }
 }

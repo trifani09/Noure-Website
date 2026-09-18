@@ -31,7 +31,7 @@ export function CheckoutForm() {
       const order = await placeOrder({ ...(checkout!.customer ? {} : customer), ...(selectedAddress ? { address_public_id: selectedAddress } : { shipping_address: address }) });
       sessionStorage.setItem("noure:last-order", JSON.stringify(order));
       await refresh();
-      router.push("/checkout/success");
+      router.push(`/payment/${order.public_id}`);
     } catch (caught) {
       if (caught instanceof CheckoutApiError && caught.status === 401) setError("Your session expired. Please sign in again or continue as a guest.");
       else setError(caught instanceof Error ? caught.message : "We could not place your order. Please try again.");
