@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
 import type { Cart } from "./types";
-export function CartSummary({ cart }: { cart: Cart }) {
+export function CartSummary({ cart, onCheckout }: { cart: Cart; onCheckout?: () => void }) {
   return (
     <aside className="border-t border-line pt-6">
       <div className="flex justify-between text-sm">
@@ -11,7 +11,7 @@ export function CartSummary({ cart }: { cart: Cart }) {
       <p className="mt-3 text-xs leading-6 text-muted">
         Shipping and taxes are calculated at checkout.
       </p>
-      <Link href="/checkout" className="button-primary mt-6 w-full">
+      <Link href="/checkout" onClick={onCheckout} className="button-primary mt-6 w-full">
         Checkout
       </Link>
       <Link

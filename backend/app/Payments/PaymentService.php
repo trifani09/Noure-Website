@@ -30,6 +30,9 @@ class PaymentService
 
     public function create(Order $order, string $idempotencyKey): Payment
     {
+        if ($order->status === 'cancelled') {
+            throw new PaymentException('order_cancelled', 'This order is cancelled and can no longer be paid.');
+        }
         if ($order->payment_status === 'paid' || $order->payments()->where('status', 'paid')->exists()) {
             throw new PaymentException('order_already_paid', 'This order is already fully paid.');
         }
@@ -38,13 +41,17 @@ class PaymentService
             if ($existing->order_id !== $order->id) {
                 throw new PaymentException('idempotency_conflict', 'The idempotency key belongs to another payment.');
             }
-
-            return $existing;
+            if ($existing->status !== 'failed' || $existing->failure_code !== 'provider_error') {
+                return $existing;
+            }
+            $existing->update(['status' => 'pending', 'failed_at' => null, 'failure_code' => null, 'failure_message' => null]);
+            $payment = $existing;
+        } else {
+            $payment = Payment::query()->create([
+                'order_id' => $order->id, 'provider' => 'midtrans', 'method_type' => 'snap', 'status' => 'pending',
+                'amount' => $order->grand_total_amount, 'currency' => $order->currency, 'idempotency_key' => $idempotencyKey, 'metadata' => [],
+            ]);
         }
-        $payment = Payment::query()->create([
-            'order_id' => $order->id, 'provider' => 'midtrans', 'method_type' => 'snap', 'status' => 'pending',
-            'amount' => $order->grand_total_amount, 'currency' => $order->currency, 'idempotency_key' => $idempotencyKey, 'metadata' => [],
-        ]);
         try {
             $provider = $this->gateway->createPayment($order->loadMissing('items'));
             $payment->update([
@@ -54,6 +61,9 @@ class PaymentService
         } catch (Throwable $exception) {
             $payment->update(['status' => 'failed', 'failed_at' => now(), 'failure_code' => 'provider_error', 'failure_message' => 'Payment provider request failed.']);
             report($exception);
+            if (! config('services.midtrans.server_key')) {
+                throw new PaymentException('payment_provider_not_configured', 'Midtrans sandbox credentials are not configured.', 503);
+            }
             throw new PaymentException('payment_provider_unavailable', 'The payment provider is temporarily unavailable.', 502);
         }
 

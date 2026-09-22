@@ -82,4 +82,5 @@ export type Payment = {
   token: string | null;
   expires_at: string | null;
   paid_at: string | null;
+  retryable: boolean;
 };

@@ -31,10 +31,10 @@ class ExpireOrderReservations extends Command
             ->where('created_at', '<=', $cutoff)->orderBy('id')->chunkById((int) $this->option('chunk'), function ($orders) use (&$expired, &$failed): void {
                 foreach ($orders as $candidate) {
                     try {
-                        DB::transaction(function () use ($candidate): void {
+                        $notification = DB::transaction(function () use ($candidate): ?array {
                             $order = Order::query()->whereKey($candidate->id)->lockForUpdate()->first();
                             if (! $order || ! in_array($order->payment_status, ['unpaid', 'pending', 'authorized'], true) || in_array($order->status, ['cancelled', 'completed'], true)) {
-                                return;
+                                return null;
                             }
                             $this->inventory->releaseReservations($order, reason: 'Released after reservation expiry');
                             $payment = $order->payments()->latest()->lockForUpdate()->first();
@@ -44,11 +44,20 @@ class ExpireOrderReservations extends Command
                                     ['idempotency_key' => 'reservation-expiry:'.$payment->public_id],
                                     ['payment_id' => $payment->id, 'type' => 'expiry', 'status' => 'expired', 'amount' => $payment->amount, 'currency' => $payment->currency, 'provider_transaction_id' => 'reservation-expiry-'.$payment->public_id, 'response_metadata' => ['source' => 'scheduler'], 'processed_at' => now()],
                                 );
-                                PaymentStatusChanged::dispatch($order->fresh(['items']), 'expired', $payment->provider, $payment->method_type, $payment->amount, null);
                             }
                             $order->update(['status' => 'cancelled', 'payment_status' => 'expired', 'fulfillment_status' => 'cancelled', 'cancelled_at' => now()]);
-                            OrderStatusChanged::dispatch($order->fresh(['items']), 'cancelled');
+
+                            return [
+                                'order' => $order->fresh(['items']),
+                                'payment' => $payment && $payment->status === 'expired' ? $payment : null,
+                            ];
                         });
+                        if ($notification) {
+                            if ($notification['payment']) {
+                                PaymentStatusChanged::dispatch($notification['order'], 'expired', $notification['payment']->provider, $notification['payment']->method_type, $notification['payment']->amount, null);
+                            }
+                            OrderStatusChanged::dispatch($notification['order'], 'cancelled');
+                        }
                         $expired++;
                     } catch (Throwable $exception) {
                         report($exception);

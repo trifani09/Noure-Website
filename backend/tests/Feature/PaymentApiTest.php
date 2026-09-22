@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cart;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
@@ -36,6 +37,28 @@ class PaymentApiTest extends TestCase
             ->assertCreated()->assertJsonPath('data.amount', 300000)->assertJsonPath('data.redirect_url', 'https://app.sandbox.midtrans.com/snap/v4/redirection/token');
         $this->assertDatabaseHas('payments', ['order_id' => $this->order->id, 'amount' => 300000, 'currency' => 'IDR', 'provider' => 'midtrans']);
         Http::assertSent(fn ($request) => $request['transaction_details']['gross_amount'] === 300000);
+    }
+
+    public function test_guest_can_create_payment_for_order_owned_by_guest_cart_cookie(): void
+    {
+        $token = 'guest-payment-token';
+        $cart = Cart::factory()->create(['guest_token_hash' => hash('sha256', $token), 'status' => 'converted']);
+        $order = Order::factory()->for($cart)->create(['customer_id' => null, 'email' => 'guest@example.com', 'payment_status' => 'unpaid']);
+        Http::fake(['app.sandbox.midtrans.com/*' => Http::response(['token' => 'guest-token', 'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/guest'], 201)]);
+
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders/'.$order->public_id.'/payment')
+            ->assertCreated()->assertJsonPath('data.order_public_id', $order->public_id);
+    }
+
+    public function test_customer_cannot_create_payment_for_another_customers_order(): void
+    {
+        Http::fake();
+        $other = Customer::factory()->create();
+        $order = Order::factory()->for($other)->create(['payment_status' => 'unpaid']);
+
+        $this->actingAs($this->customer, 'customer')->postJson('/api/v1/orders/'.$order->public_id.'/payment')
+            ->assertNotFound()->assertJsonPath('meta.errors.0.code', 'order_not_found');
+        Http::assertNothingSent();
     }
 
     public function test_invalid_order_is_rejected(): void

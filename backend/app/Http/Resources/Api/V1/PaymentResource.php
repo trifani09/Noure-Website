@@ -23,6 +23,7 @@ class PaymentResource extends JsonResource
             'token' => $this->metadata['token'] ?? null,
             'expires_at' => $this->metadata['expiry_time'] ?? null,
             'paid_at' => $this->paid_at?->utc()->toISOString(),
+            'retryable' => $this->status === 'failed' && $this->failure_code === 'provider_error',
         ];
     }
 }

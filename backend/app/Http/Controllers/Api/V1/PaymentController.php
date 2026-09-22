@@ -11,6 +11,7 @@ use App\Payments\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -73,7 +74,17 @@ class PaymentController extends Controller
             return null;
         }
 
-        return $query->whereHas('cart', fn ($cart) => $cart->where('guest_token_hash', hash('sha256', $token)))->first();
+        $order = $query->whereHas('cart', fn ($cart) => $cart->where('guest_token_hash', hash('sha256', $token)))->first();
+        if (! $order) {
+            Log::warning('Payment order ownership lookup failed', [
+                'request_id' => $request->attributes->get('request_id'),
+                'order_public_id' => $publicId,
+                'authenticated_customer_public_id' => null,
+                'has_guest_cart_cookie' => true,
+            ]);
+        }
+
+        return $order;
     }
 
     private function failure(PaymentException $exception): JsonResponse

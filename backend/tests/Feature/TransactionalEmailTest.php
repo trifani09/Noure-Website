@@ -35,7 +35,7 @@ class TransactionalEmailTest extends TestCase
 
         app(SendTransactionalOrderEmail::class)->handle(new OrderCreated($order));
 
-        Mail::assertSent(function ($mail): bool {
+        Mail::assertSent(function (TransactionalOrderMail $mail): bool {
             return $mail->hasTo('snapshot@example.com') && $mail->messageType === 'order_created';
         });
     }

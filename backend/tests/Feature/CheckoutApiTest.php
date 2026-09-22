@@ -40,12 +40,14 @@ class CheckoutApiTest extends TestCase
     public function test_guest_checkout_returns_summary_and_creates_order(): void
     {
         [$token] = $this->guestCart(2);
-        $this->withUnencryptedCookie('noure_cart', $token)->getJson('/api/v1/checkout')
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->getJson('/api/v1/checkout')
             ->assertOk()->assertJsonPath('data.cart.item_count', 2)->assertJsonPath('data.totals.grand_total_amount', 300000);
 
-        $response = $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $response = $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertCreated()->assertJsonPath('data.status', 'pending')->assertJsonPath('data.payment_status', 'unpaid')
             ->assertJsonPath('data.fulfillment_status', 'unfulfilled')->assertJsonPath('data.grand_total_amount', 320000);
+        $this->assertNotEmpty($response->json('data.public_id'));
+        $this->assertDatabaseHas('orders', ['public_id' => $response->json('data.public_id')]);
 
         $this->assertDatabaseHas('orders', ['order_number' => $response->json('data.order_number'), 'customer_id' => null, 'grand_total_amount' => 320000, 'shipping_amount' => 20000]);
         $this->assertDatabaseHas('order_items', ['product_name' => 'Luna Dress', 'sku' => 'NOU-LUNA-M', 'quantity' => 2, 'total_amount' => 300000]);
@@ -73,7 +75,7 @@ class CheckoutApiTest extends TestCase
     public function test_empty_cart_is_rejected(): void
     {
         [$token] = $this->guestCart(0);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertUnprocessable()->assertJsonPath('meta.errors.0.code', 'empty_cart');
     }
 
@@ -81,7 +83,7 @@ class CheckoutApiTest extends TestCase
     {
         [$token] = $this->guestCart(2);
         $this->level->update(['on_hand' => 2, 'reserved' => 1, 'safety_stock' => 0]);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertConflict()->assertJsonPath('meta.errors.0.code', 'insufficient_stock');
         $this->assertDatabaseCount('orders', 0);
     }
@@ -90,7 +92,7 @@ class CheckoutApiTest extends TestCase
     {
         [$token] = $this->guestCart(1);
         $this->variant->update(['price_amount' => 175000]);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertCreated()->assertJsonPath('data.items.0.unit_price_amount', 175000)
             ->assertJsonPath('data.grand_total_amount', 195000);
         $this->assertDatabaseHas('order_items', ['variant_id' => $this->variant->id, 'unit_price_amount' => 175000]);
@@ -100,7 +102,7 @@ class CheckoutApiTest extends TestCase
     {
         [$token] = $this->guestCart(1);
         $this->variant->update(['is_active' => false]);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertConflict()->assertJsonPath('meta.errors.0.code', 'variant_inactive');
     }
 
@@ -108,7 +110,7 @@ class CheckoutApiTest extends TestCase
     {
         [$token, $cart] = $this->guestCart(1);
         $cart->update(['expires_at' => now()->subMinute()]);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertConflict()->assertJsonPath('meta.errors.0.code', 'cart_expired');
     }
 
@@ -116,7 +118,7 @@ class CheckoutApiTest extends TestCase
     {
         [$token, $cart] = $this->guestCart(1);
         $cart->items()->update(['quantity' => 0]);
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertUnprocessable()->assertJsonPath('meta.errors.0.code', 'invalid_quantity');
     }
 
@@ -127,7 +129,7 @@ class CheckoutApiTest extends TestCase
         InventoryLevel::factory()->for($secondVariant, 'variant')->for($this->location, 'location')->create(['on_hand' => 0, 'reserved' => 0, 'safety_stock' => 0]);
         CartItem::factory()->for($cart)->for($secondVariant, 'variant')->create(['quantity' => 1, 'unit_price_snapshot' => 90000, 'currency' => 'IDR']);
 
-        $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())->assertConflict();
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())->assertConflict();
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('order_items', 0);
         $this->assertDatabaseHas('inventory_levels', ['id' => $this->level->id, 'reserved' => 1]);
@@ -138,8 +140,8 @@ class CheckoutApiTest extends TestCase
     {
         [$firstToken] = $this->guestCart(6);
         [$secondToken] = $this->guestCart(3);
-        $this->withUnencryptedCookie('noure_cart', $firstToken)->postJson('/api/v1/orders', $this->guestPayload())->assertCreated();
-        $this->withUnencryptedCookie('noure_cart', $secondToken)->postJson('/api/v1/orders', $this->guestPayload())
+        $this->withUnencryptedCookie('noure_cart', $firstToken)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())->assertCreated();
+        $this->withUnencryptedCookie('noure_cart', $secondToken)->withCredentials()->postJson('/api/v1/orders', $this->guestPayload())
             ->assertConflict()->assertJsonPath('meta.errors.0.code', 'insufficient_stock');
         $this->assertDatabaseHas('inventory_levels', ['id' => $this->level->id, 'reserved' => 7]);
         $this->assertDatabaseCount('orders', 1);

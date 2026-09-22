@@ -60,7 +60,7 @@ export function CartDrawer() {
             />
           ))}
         </div>
-        {cart && cart.items.length > 0 && <CartSummary cart={cart} />}
+        {cart && cart.items.length > 0 && <CartSummary cart={cart} onCheckout={closeDrawer} />}
         <Link
           href="/cart"
           onClick={closeDrawer}
