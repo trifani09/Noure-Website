@@ -2,6 +2,7 @@
 
 namespace App\Payments;
 
+use App\Events\PaymentStatusChanged;
 use App\Inventory\InventoryLifecycleException;
 use App\Inventory\OrderInventoryService;
 use App\Models\Order;
@@ -75,6 +76,7 @@ class PaymentService
                 throw new PaymentException('payment_amount_mismatch', 'Webhook amount or currency does not match the payment.', 409);
             }
             $status = $this->gateway->status($payload);
+            $previousStatus = $payment->status;
             $transactionId = (string) ($payload['transaction_id'] ?? $payload['order_id']);
             $idempotencyKey = 'midtrans:'.$transactionId.':'.$status;
             if (PaymentTransaction::query()->where('idempotency_key', $idempotencyKey)->exists()) {
@@ -111,6 +113,17 @@ class PaymentService
             $payment->update($changes);
             if ($mayTransition) {
                 $payment->order()->update(['payment_status' => $status]);
+                if ($status !== $previousStatus) {
+                    $payment = $payment->fresh(['order']);
+                    PaymentStatusChanged::dispatch(
+                        $payment->order->load('items'),
+                        $status,
+                        $payment->provider,
+                        $payment->method_type,
+                        $payment->amount,
+                        $payment->paid_at?->utc()->toISOString(),
+                    );
+                }
             }
 
             return $payment->fresh('transactions');

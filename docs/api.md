@@ -744,6 +744,10 @@ Address bodies accept `label`, `recipient_name`, `phone`, `line1`, `line2`, `cit
 
 The list is paginated and returns `order_number`, `created_at`, `item_count`, total/currency, and order, payment, and fulfillment statuses. Detail additionally returns the customer contact snapshot, shipping and billing snapshots, item variant/options snapshots, line pricing, and order totals. The order detail uses the existing payment retry endpoint when payment is pending or unpaid.
 
+## Transactional email events
+
+Queued customer emails are sent for order creation, payment paid/failed/expired outcomes, and order status transitions to processing, shipped, completed, or cancelled. Email delivery is keyed by event and public order ID so repeated payment webhooks do not send duplicate messages. The local default mailer is `log`; queue workers deliver messages asynchronously.
+
 ## Endpoint summary
 
 | Method | Path |

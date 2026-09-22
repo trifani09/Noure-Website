@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Events\OrderStatusChanged;
+use App\Events\PaymentStatusChanged;
 use App\Inventory\OrderInventoryService;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
@@ -42,8 +44,10 @@ class ExpireOrderReservations extends Command
                                     ['idempotency_key' => 'reservation-expiry:'.$payment->public_id],
                                     ['payment_id' => $payment->id, 'type' => 'expiry', 'status' => 'expired', 'amount' => $payment->amount, 'currency' => $payment->currency, 'provider_transaction_id' => 'reservation-expiry-'.$payment->public_id, 'response_metadata' => ['source' => 'scheduler'], 'processed_at' => now()],
                                 );
+                                PaymentStatusChanged::dispatch($order->fresh(['items']), 'expired', $payment->provider, $payment->method_type, $payment->amount, null);
                             }
                             $order->update(['status' => 'cancelled', 'payment_status' => 'expired', 'fulfillment_status' => 'cancelled', 'cancelled_at' => now()]);
+                            OrderStatusChanged::dispatch($order->fresh(['items']), 'cancelled');
                         });
                         $expired++;
                     } catch (Throwable $exception) {

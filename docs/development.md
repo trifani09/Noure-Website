@@ -42,3 +42,32 @@ php artisan schedule:work
 ```
 
 `ORDER_RESERVATION_MINUTES` controls the timeout and defaults to `30`. The scheduled `orders:expire-reservations` command runs every minute, is idempotent, marks stale unpaid orders and payments expired, and releases reservations without changing `on_hand`.
+
+# Transactional email
+
+Transactional order, payment, and fulfillment email is sent by queued Laravel listeners. Events are dispatched after their database transactions commit, and a delivery ledger prevents duplicate email for repeated webhook or status events.
+
+Local development uses the `log` mailer by default. Emails are written to the Laravel log and are not delivered to customers. Automated tests use Laravel's array mailer and fake mail/queue boundaries.
+
+Required mail environment variables:
+
+```dotenv
+MAIL_MAILER=log
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="Noure"
+```
+
+For SMTP or another supported Laravel mailer, set credentials through deployment secrets. Never commit credentials. Customer links use order public IDs and do not expose internal database IDs or provider secrets.
+
+Run a production queue worker alongside the API:
+
+```bash
+php artisan queue:work --queue=emails,default --tries=3
+```
+
+Production deployments must provision the queue backend and `jobs`/`failed_jobs` tables, supervise the worker, and restart workers after releases. The scheduler must also remain active for reservation expiry.

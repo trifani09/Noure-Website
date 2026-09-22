@@ -2,6 +2,7 @@
 
 namespace App\Orders;
 
+use App\Events\OrderStatusChanged;
 use App\Inventory\InventoryLifecycleException;
 use App\Inventory\OrderInventoryService;
 use App\Models\Order;
@@ -51,6 +52,7 @@ class FulfillmentService
                 'fulfilled' => 'completed',
             };
             $order->update(['fulfillment_status' => $status, 'status' => $orderStatus, 'metadata' => $metadata]);
+            OrderStatusChanged::dispatch($order->fresh(['items']), $orderStatus);
 
             return $order->fresh(['customer', 'items', 'payments.transactions']);
         });

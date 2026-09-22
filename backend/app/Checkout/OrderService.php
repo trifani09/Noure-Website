@@ -2,6 +2,7 @@
 
 namespace App\Checkout;
 
+use App\Events\OrderCreated;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Customer;
@@ -89,7 +90,10 @@ class OrderService
                 $customer->update(['last_order_at' => now()]);
             }
 
-            return $order->load('items');
+            $order = $order->load('items');
+            OrderCreated::dispatch($order);
+
+            return $order;
         });
     }
 

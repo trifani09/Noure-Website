@@ -2,6 +2,7 @@
 
 namespace App\Orders;
 
+use App\Events\OrderStatusChanged;
 use App\Inventory\InventoryLifecycleException;
 use App\Inventory\OrderInventoryService;
 use App\Models\Order;
@@ -55,6 +56,7 @@ class AdminOrderService
                 'cancelled_at' => $status === 'cancelled' ? now() : $order->cancelled_at,
                 'metadata' => $metadata,
             ]);
+            OrderStatusChanged::dispatch($order->fresh(['items']), $status);
 
             return $order->fresh(['customer', 'items', 'payments']);
         });
