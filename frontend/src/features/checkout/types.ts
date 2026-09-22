@@ -20,6 +20,17 @@ export type Totals = {
   grand_total_amount: number;
   currency: string;
 };
+export type ShippingMethod = {
+  code: string;
+  name: string;
+  description: string;
+  amount: number;
+  currency: string;
+  estimate: string;
+  zone: { code: string; name: string };
+  weight_grams: number;
+  free_shipping: boolean;
+};
 export type Checkout = {
   cart: Cart;
   customer: { name: string; email: string; phone: string } | null;
@@ -55,6 +66,7 @@ export type Order = {
   shipping_amount: number;
   grand_total_amount: number;
   currency: string;
+  shipping_method: ShippingMethod | null;
 };
 export type Payment = {
   public_id: string;

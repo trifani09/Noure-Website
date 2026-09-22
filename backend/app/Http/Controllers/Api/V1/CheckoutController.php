@@ -7,10 +7,12 @@ use App\Checkout\CheckoutException;
 use App\Checkout\OrderService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreOrderRequest;
+use App\Http\Requests\Api\V1\ShippingMethodsRequest;
 use App\Http\Resources\Api\V1\CartResource;
 use App\Http\Resources\Api\V1\OrderResource;
 use App\Models\Cart;
 use App\Models\Customer;
+use App\Shipping\ShippingRateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +21,7 @@ class CheckoutController extends Controller
 {
     private const COOKIE = 'noure_cart';
 
-    public function __construct(private readonly CartService $carts, private readonly OrderService $orders) {}
+    public function __construct(private readonly CartService $carts, private readonly OrderService $orders, private readonly ShippingRateService $shipping) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -51,6 +53,19 @@ class CheckoutController extends Controller
         }
 
         return $this->response((new OrderResource($order))->resolve($request), $token, 201, 'Order placed.');
+    }
+
+    public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
+    {
+        $token = null;
+        try {
+            [$cart, $token] = $this->cart($request);
+            $data = $this->shipping->availableMethods($cart, $this->destination($request));
+        } catch (CheckoutException $exception) {
+            return $this->failure($exception, $token);
+        }
+
+        return $this->response($data, $token);
     }
 
     private function cart(Request $request): array
@@ -92,6 +107,22 @@ class CheckoutController extends Controller
         $customer = Auth::guard('customer')->user();
 
         return $customer;
+    }
+
+    /** @return array<string, mixed> */
+    private function destination(Request $request): array
+    {
+        if ($request->filled('address_public_id')) {
+            $customer = $this->customer();
+            $address = $customer?->addresses()->where('public_id', $request->string('address_public_id'))->first();
+            if (! $address) {
+                throw new CheckoutException('invalid_address', 'The selected shipping address is not available.', 422);
+            }
+
+            return $address->only(['city', 'province', 'postal_code', 'country_code']);
+        }
+
+        return $request->validated();
     }
 
     private function response(array $data, ?string $token, int $status = 200, ?string $message = null): JsonResponse

@@ -1,4 +1,4 @@
-import type { Checkout, Order, ShippingAddress } from "./types";
+import type { Checkout, Order, ShippingAddress, ShippingMethod } from "./types";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/$/, "");
 type Envelope<T> = { data: T; message?: string | null; meta?: { errors?: Array<{ code: string; field?: string; message: string }> } };
@@ -26,7 +26,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return payload!.data;
 }
 export const getCheckout = () => request<Checkout>("/checkout");
-export async function placeOrder(input: { name?: string; email?: string; phone?: string; address_public_id?: string; shipping_address?: ShippingAddress }) {
+export async function getShippingMethods(input: { address_public_id?: string; shipping_address?: ShippingAddress }) {
+  const query = new URLSearchParams();
+  if (input.address_public_id) query.set("address_public_id", input.address_public_id);
+  if (input.shipping_address) Object.entries(input.shipping_address).forEach(([key, value]) => { if (value) query.set(key, value); });
+  return request<ShippingMethod[]>(`/checkout/shipping-methods?${query}`);
+}
+export async function placeOrder(input: { name?: string; email?: string; phone?: string; address_public_id?: string; shipping_address?: ShippingAddress; shipping_method_code?: string }) {
   await fetch(`${API_URL.replace(/\/api$/, "")}/sanctum/csrf-cookie`, { credentials: "include" });
   return request<Order>("/orders", { method: "POST", body: JSON.stringify(input) });
 }

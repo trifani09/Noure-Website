@@ -21,6 +21,16 @@ The running v1 application also exposes checkout/order/payment endpoints beyond 
 - `POST /api/v1/payments/webhook` verifies and applies Midtrans notifications. `paid` converts reservations to sale; `failed`, `expired`, and `cancelled` release reservations.
 - `PUT /api/v1/admin/orders/{order_public_id}/fulfillment` accepts the forward-only sequence `processing`, `shipped`, `fulfilled`. It requires `payment_status=paid`; the corresponding order statuses become `processing`, `shipped`, and `completed`.
 
+### Shipping calculation
+
+Shipping uses the `ShippingRateService` abstraction and the config-backed `RuleBasedShippingProvider`. The initial provider supports Indonesia zones: Jabodetabek, Java, Sumatra, Kalimantan, Sulawesi, Bali / Nusa Tenggara, and an Other Indonesia fallback. No courier API is called.
+
+- `GET /api/v1/checkout/shipping-methods?country_code=ID&city=Jakarta&province=DKI%20Jakarta`
+
+The endpoint calculates rates from the current cart, destination, current variant weights, active configured methods, and the configured free-shipping threshold. A saved customer address may be supplied as `address_public_id`. The response includes method `code`, `name`, `description`, `amount`, `currency`, `estimate`, selected `zone`, cart `weight_grams`, and `free_shipping`.
+
+Order creation accepts `shipping_method_code` plus the normal guest destination or customer `address_public_id`. The backend recalculates the rate while locking the cart and ignores any client-provided shipping amount or total. The selected method, zone, calculated weight, estimate, and amount are stored in `orders.metadata.shipping` and returned as `shipping_method`.
+
 Order, payment, and fulfillment statuses remain separate. Cancellation after inventory has been converted to sale returns `409 inventory_already_sold` because returns/refunds are outside the current scope.
 
 Clients send `Accept: application/json` and use `Content-Type: application/json` for JSON bodies. JSON and query names use `snake_case`. Unknown request properties return `422` rather than being silently ignored.
@@ -756,6 +766,8 @@ Queued customer emails are sent for order creation, payment paid/failed/expired 
 | GET | `/api/v1/categories/{slug}` |
 | GET | `/api/v1/products` |
 | GET | `/api/v1/products/{slug}` |
+| GET | `/api/v1/checkout/shipping-methods` |
+| POST | `/api/v1/orders` |
 | GET, PUT | `/api/v1/customer/profile` |
 | GET, POST | `/api/v1/customer/addresses` |
 | GET, PUT, DELETE | `/api/v1/customer/addresses/{public_id}` |

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\CustomerAddressController;
 use App\Http\Controllers\Api\V1\CustomerOrderController;
+use App\Http\Requests\Api\V1\ShippingMethodsRequest;
 use App\Http\Controllers\Api\V1\HomepageController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
@@ -33,6 +34,7 @@ Route::prefix('v1')->group(function (): void {
     Route::put('cart/items/{id}', [CartController::class, 'update'])->whereNumber('id')->name('api.v1.cart.items.update');
     Route::delete('cart/items/{id}', [CartController::class, 'destroy'])->whereNumber('id')->name('api.v1.cart.items.destroy');
     Route::get('checkout', [CheckoutController::class, 'show'])->name('api.v1.checkout.show');
+    Route::get('checkout/shipping-methods', [CheckoutController::class, 'shippingMethods'])->name('api.v1.checkout.shipping-methods');
     Route::post('orders', [CheckoutController::class, 'store'])->name('api.v1.orders.store');
     Route::post('orders/{order_public_id}/payment', [PaymentController::class, 'store'])->name('api.v1.orders.payment.store');
     Route::get('orders/{order_public_id}/payment', [PaymentController::class, 'show'])->name('api.v1.orders.payment.show');

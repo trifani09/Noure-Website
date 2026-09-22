@@ -37,6 +37,7 @@ class CustomerOrderResource extends JsonResource
             'tax_amount' => $this->tax_amount,
             'grand_total_amount' => $this->grand_total_amount,
             'currency' => $this->currency,
+            'shipping_method' => ($this->metadata ?? [])['shipping'] ?? null,
             'status' => $this->status,
             'payment_status' => $this->payment_status,
             'fulfillment_status' => $this->fulfillment_status,

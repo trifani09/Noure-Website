@@ -10,11 +10,14 @@ use App\Models\InventoryLevel;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\ProductVariant;
+use App\Shipping\ShippingRateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class OrderService
 {
+    public function __construct(private readonly ShippingRateService $shipping) {}
+
     /** @param array<string, mixed> $input */
     public function create(Cart $cart, ?Customer $customer, array $input): Order
     {
@@ -49,7 +52,7 @@ class OrderService
 
             $shippingAddress = $this->shippingAddress($customer, $input);
             $discount = 0;
-            $shipping = 0;
+            $shipping = $this->shipping->calculate($cart, $shippingAddress, $input['shipping_method_code'] ?? 'standard');
             $tax = 0;
             $order = Order::query()->create([
                 'order_number' => 'NOU-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
@@ -64,12 +67,12 @@ class OrderService
                 'currency' => $cart->currency,
                 'subtotal_amount' => $subtotal,
                 'discount_amount' => $discount,
-                'shipping_amount' => $shipping,
+                'shipping_amount' => $shipping['amount'],
                 'tax_amount' => $tax,
-                'grand_total_amount' => $subtotal - $discount + $shipping + $tax,
+                'grand_total_amount' => $subtotal - $discount + $shipping['amount'] + $tax,
                 'billing_address' => $shippingAddress,
                 'shipping_address' => $shippingAddress,
-                'metadata' => [],
+                'metadata' => ['shipping' => $shipping],
             ]);
             foreach ($items as $item) {
                 $variant = $variants->get($item->variant_id);

@@ -45,9 +45,9 @@ class CheckoutApiTest extends TestCase
 
         $response = $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
             ->assertCreated()->assertJsonPath('data.status', 'pending')->assertJsonPath('data.payment_status', 'unpaid')
-            ->assertJsonPath('data.fulfillment_status', 'unfulfilled')->assertJsonPath('data.grand_total_amount', 300000);
+            ->assertJsonPath('data.fulfillment_status', 'unfulfilled')->assertJsonPath('data.grand_total_amount', 320000);
 
-        $this->assertDatabaseHas('orders', ['order_number' => $response->json('data.order_number'), 'customer_id' => null, 'grand_total_amount' => 300000]);
+        $this->assertDatabaseHas('orders', ['order_number' => $response->json('data.order_number'), 'customer_id' => null, 'grand_total_amount' => 320000, 'shipping_amount' => 20000]);
         $this->assertDatabaseHas('order_items', ['product_name' => 'Luna Dress', 'sku' => 'NOU-LUNA-M', 'quantity' => 2, 'total_amount' => 300000]);
         $this->assertDatabaseHas('carts', ['status' => 'converted']);
         $this->assertDatabaseCount('cart_items', 0);
@@ -65,7 +65,8 @@ class CheckoutApiTest extends TestCase
         $this->actingAs($customer, 'customer')->getJson('/api/v1/checkout')->assertOk()
             ->assertJsonPath('data.customer.email', 'customer@example.com')->assertJsonPath('data.addresses.0.public_id', $address->public_id);
         $this->actingAs($customer, 'customer')->postJson('/api/v1/orders', ['address_public_id' => $address->public_id])
-            ->assertCreated()->assertJsonPath('data.email', 'customer@example.com')->assertJsonPath('data.shipping_address.line1', 'Jl. Melati 10');
+            ->assertCreated()->assertJsonPath('data.email', 'customer@example.com')->assertJsonPath('data.shipping_address.line1', 'Jl. Melati 10')
+            ->assertJsonPath('data.shipping_amount', 20000);
         $this->assertDatabaseHas('orders', ['customer_id' => $customer->id, 'email' => 'customer@example.com']);
     }
 
@@ -91,7 +92,7 @@ class CheckoutApiTest extends TestCase
         $this->variant->update(['price_amount' => 175000]);
         $this->withUnencryptedCookie('noure_cart', $token)->postJson('/api/v1/orders', $this->guestPayload())
             ->assertCreated()->assertJsonPath('data.items.0.unit_price_amount', 175000)
-            ->assertJsonPath('data.grand_total_amount', 175000);
+            ->assertJsonPath('data.grand_total_amount', 195000);
         $this->assertDatabaseHas('order_items', ['variant_id' => $this->variant->id, 'unit_price_amount' => 175000]);
     }
 

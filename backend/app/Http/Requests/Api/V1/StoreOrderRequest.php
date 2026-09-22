@@ -23,6 +23,7 @@ class StoreOrderRequest extends CustomerRequest
             'shipping_address.province' => ['nullable', 'string', 'max:120'],
             'shipping_address.postal_code' => ['required_with:shipping_address', 'string', 'max:30'],
             'shipping_address.country_code' => ['nullable', 'string', 'size:2'],
+            'shipping_method_code' => ['sometimes', 'string', 'max:50'],
         ];
     }
 }

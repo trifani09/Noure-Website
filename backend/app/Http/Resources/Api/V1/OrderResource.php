@@ -21,6 +21,7 @@ class OrderResource extends JsonResource
             'subtotal_amount' => $this->subtotal_amount, 'discount_amount' => $this->discount_amount,
             'shipping_amount' => $this->shipping_amount, 'grand_total_amount' => $this->grand_total_amount,
             'currency' => $this->currency, 'placed_at' => $this->placed_at?->toISOString(),
+            'shipping_method' => ($this->metadata ?? [])['shipping'] ?? null,
         ];
     }
 }

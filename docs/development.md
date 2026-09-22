@@ -71,3 +71,13 @@ php artisan queue:work --queue=emails,default --tries=3
 ```
 
 Production deployments must provision the queue backend and `jobs`/`failed_jobs` tables, supervise the worker, and restart workers after releases. The scheduler must also remain active for reservation expiry.
+
+# Shipping configuration
+
+Rule-based shipping is configured in `backend/config/shipping.php`. Methods, base prices, estimates, active state, structured city/province zone membership, weight surcharge settings, and the Indonesia fallback zone are centralized there. The free-shipping threshold is configured with:
+
+```dotenv
+FREE_SHIPPING_MIN_ORDER=500000
+```
+
+The current provider calculates Standard and Express rates locally. Future courier or aggregator integrations should implement the shipping provider boundary rather than adding provider calls to checkout controllers. Minimal admin editing is not added because the repository has no general settings infrastructure; configuration management is the current source of truth.
