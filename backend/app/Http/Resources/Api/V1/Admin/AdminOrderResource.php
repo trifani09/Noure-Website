@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Admin;
 
+use App\Inventory\OrderInventoryService;
 use Illuminate\Http\Request;
 
 class AdminOrderResource extends AdminOrderListResource
@@ -42,6 +43,8 @@ class AdminOrderResource extends AdminOrderListResource
                 ])->values() ?? [],
             ],
             'status_history' => $history,
+            'fulfillment_history' => $this->metadata['fulfillment_history'] ?? [],
+            'inventory' => app(OrderInventoryService::class)->state($this->resource),
         ];
     }
 }

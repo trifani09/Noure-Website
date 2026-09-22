@@ -33,3 +33,12 @@ Use `npm install` in both JavaScript applications and `composer install` in the 
 ## Scope of this foundation
 
 This initial structure intentionally contains only framework starter code. Product catalog, cart, checkout, authentication, orders, and CMS behavior are not part of the foundation.
+# Scheduler
+
+Run Laravel's scheduler in every deployed environment so unpaid order reservations expire and return to available stock:
+
+```bash
+php artisan schedule:work
+```
+
+`ORDER_RESERVATION_MINUTES` controls the timeout and defaults to `30`. The scheduled `orders:expire-reservations` command runs every minute, is idempotent, marks stale unpaid orders and payments expired, and releases reservations without changing `on_hand`.

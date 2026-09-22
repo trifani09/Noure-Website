@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
+use App\Http\Controllers\Api\V1\CustomerAddressController;
+use App\Http\Controllers\Api\V1\CustomerOrderController;
 use App\Http\Controllers\Api\V1\HomepageController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
@@ -48,6 +50,9 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware('auth:customer')->prefix('customer')->name('api.v1.customer.')->group(function (): void {
         Route::get('profile', [CustomerProfileController::class, 'show'])->name('profile.show');
         Route::put('profile', [CustomerProfileController::class, 'update'])->name('profile.update');
+        Route::apiResource('addresses', CustomerAddressController::class)->parameters(['addresses' => 'public_id']);
+        Route::get('orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order_public_id}', [CustomerOrderController::class, 'show'])->name('orders.show');
     });
 
     Route::prefix('admin/auth')->name('api.v1.admin.auth.')->group(function (): void {
@@ -62,6 +67,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order_public_id}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{order_public_id}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+        Route::put('orders/{order_public_id}/fulfillment', [OrderController::class, 'updateFulfillment'])->name('orders.fulfillment.update');
         Route::apiResource('banners', BannerController::class)->except(['show'])->parameters(['banners' => 'public_id']);
         Route::apiResource('homepage-sections', HomepageSectionController::class)->except(['show'])->parameters(['homepage-sections' => 'public_id']);
         Route::post('product-imports/preview', [ProductImportController::class, 'preview'])->name('product-imports.preview');

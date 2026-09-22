@@ -4,11 +4,24 @@
 
 This document defines the version 1 HTTP/JSON contract for Noure's existing public and admin catalog APIs. [`database.md`](./database.md) is authoritative for the data model. This phase is documentation only: it does not implement application code, authentication, storage, or UI.
 
+The running v1 application also exposes authenticated customer account endpoints described below.
+
 Covered here are public category/product reads, admin category/product management, variants, and inventory. Cart, checkout, orders, payments, discounts, banners, uploads, restore, and permanent purge are outside this contract.
 
 ## Versioning and transport
 
 All routes begin with `/api/v1`. Public routes use `/api/v1/...`; admin routes use `/api/v1/admin/...`. Breaking changes require a new major URL version; additive fields may be introduced within v1.
+
+## Implemented commerce lifecycle extension
+
+The running v1 application also exposes checkout/order/payment endpoints beyond the original catalog-only scope of this document:
+
+- `POST /api/v1/orders` creates an order and reserves inventory.
+- `POST /api/v1/orders/{order_public_id}/payment` and `GET /api/v1/orders/{order_public_id}/payment` manage the customer's Midtrans payment attempt.
+- `POST /api/v1/payments/webhook` verifies and applies Midtrans notifications. `paid` converts reservations to sale; `failed`, `expired`, and `cancelled` release reservations.
+- `PUT /api/v1/admin/orders/{order_public_id}/fulfillment` accepts the forward-only sequence `processing`, `shipped`, `fulfilled`. It requires `payment_status=paid`; the corresponding order statuses become `processing`, `shipped`, and `completed`.
+
+Order, payment, and fulfillment statuses remain separate. Cancellation after inventory has been converted to sale returns `409 inventory_already_sold` because returns/refunds are outside the current scope.
 
 Clients send `Accept: application/json` and use `Content-Type: application/json` for JSON bodies. JSON and query names use `snake_case`. Unknown request properties return `422` rather than being silently ignored.
 
@@ -703,6 +716,34 @@ Internal error:
 }
 ```
 
+## Customer account
+
+All customer account routes require the `customer` authentication guard. A customer can only access resources owned by their account; cross-account addresses and orders return `404`.
+
+### Profile
+
+- `GET /api/v1/customer/profile`
+- `PUT /api/v1/customer/profile`
+
+The update body accepts `first_name`, `last_name`, and `phone`. Email is read-only in this phase.
+
+### Addresses
+
+- `GET /api/v1/customer/addresses`
+- `POST /api/v1/customer/addresses`
+- `GET /api/v1/customer/addresses/{public_id}`
+- `PUT /api/v1/customer/addresses/{public_id}`
+- `DELETE /api/v1/customer/addresses/{public_id}`
+
+Address bodies accept `label`, `recipient_name`, `phone`, `line1`, `line2`, `city`, `province`, `postal_code`, `country_code`, `is_default_shipping`, and `is_default_billing`. Default changes and replacement after deletion are transactional; at most one address per default type is active for a customer.
+
+### Orders
+
+- `GET /api/v1/customer/orders?page=1&per_page=20&status=pending&payment_status=unpaid&sort=newest`
+- `GET /api/v1/customer/orders/{order_public_id}`
+
+The list is paginated and returns `order_number`, `created_at`, `item_count`, total/currency, and order, payment, and fulfillment statuses. Detail additionally returns the customer contact snapshot, shipping and billing snapshots, item variant/options snapshots, line pricing, and order totals. The order detail uses the existing payment retry endpoint when payment is pending or unpaid.
+
 ## Endpoint summary
 
 | Method | Path |
@@ -711,6 +752,11 @@ Internal error:
 | GET | `/api/v1/categories/{slug}` |
 | GET | `/api/v1/products` |
 | GET | `/api/v1/products/{slug}` |
+| GET, PUT | `/api/v1/customer/profile` |
+| GET, POST | `/api/v1/customer/addresses` |
+| GET, PUT, DELETE | `/api/v1/customer/addresses/{public_id}` |
+| GET | `/api/v1/customer/orders` |
+| GET | `/api/v1/customer/orders/{order_public_id}` |
 | GET, POST | `/api/v1/admin/categories` |
 | GET, PUT, DELETE | `/api/v1/admin/categories/{public_id}` |
 | GET, POST | `/api/v1/admin/products` |

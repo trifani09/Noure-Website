@@ -4,19 +4,21 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Admin\ListOrdersRequest;
+use App\Http\Requests\Api\V1\Admin\UpdateFulfillmentStatusRequest;
 use App\Http\Requests\Api\V1\Admin\UpdateOrderStatusRequest;
 use App\Http\Resources\Api\V1\Admin\AdminOrderListResource;
 use App\Http\Resources\Api\V1\Admin\AdminOrderResource;
 use App\Models\User;
 use App\Orders\AdminOrderQuery;
 use App\Orders\AdminOrderService;
+use App\Orders\FulfillmentService;
 use App\Orders\OrderConflictException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly AdminOrderQuery $orders, private readonly AdminOrderService $service) {}
+    public function __construct(private readonly AdminOrderQuery $orders, private readonly AdminOrderService $service, private readonly FulfillmentService $fulfillment) {}
 
     public function index(ListOrdersRequest $request): JsonResponse
     {
@@ -47,6 +49,23 @@ class OrderController extends Controller
         }
 
         return $this->resource($request, $order, 'Order status updated.');
+    }
+
+    public function updateFulfillment(UpdateFulfillmentStatusRequest $request, string $order_public_id): JsonResponse
+    {
+        $order = $this->orders->find($order_public_id);
+        if (! $order) {
+            return $this->notFound();
+        }
+        /** @var User $actor */
+        $actor = $request->user();
+        try {
+            $order = $this->fulfillment->update($order, $request->validated('status'), $actor);
+        } catch (OrderConflictException $exception) {
+            return response()->json(['data' => null, 'meta' => ['errors' => [['code' => $exception->errorCode, 'message' => $exception->getMessage()]]], 'message' => 'The request conflicts with the current fulfillment state.'], 409);
+        }
+
+        return $this->resource($request, $order, 'Fulfillment status updated.');
     }
 
     private function resource(Request $request, object $order, ?string $message = null): JsonResponse

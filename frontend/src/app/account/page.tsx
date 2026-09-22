@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
-import { ContentPlaceholder } from "@/features/content";
+import { AccountDashboard } from "@/components/account/AccountDashboard";
 export const metadata: Metadata = {
   title: "Account",
-  description: "Noure customer-account route foundation.",
+  description: "Manage your Noure profile, addresses, and orders.",
 };
 export default function AccountPage() {
-  return (
-    <ContentPlaceholder
-      eyebrow="Account foundation"
-      title="Your account"
-      description="Customer sign-in and account features are intentionally reserved for a later phase."
-    />
-  );
+  return <AccountDashboard />;
 }

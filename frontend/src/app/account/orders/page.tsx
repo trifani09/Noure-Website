@@ -1,15 +1,12 @@
-import type { Metadata } from "next";
-import { ContentPlaceholder } from "@/features/content";
-export const metadata: Metadata = {
-  title: "Order history",
-  description: "Noure customer order-history route foundation.",
-};
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { AccountNav } from "@/components/account/AccountGuard";
+import { getOrders } from "@/services/account-api";
+import type { OrderSummary } from "@/types/account";
 export default function OrdersPage() {
-  return (
-    <ContentPlaceholder
-      eyebrow="Account foundation"
-      title="Your orders"
-      description="Order history will become available when customer authentication and order services are connected."
-    />
-  );
+  const [orders, setOrders] = useState<OrderSummary[]>([]); const [page, setPage] = useState(1); const [lastPage, setLastPage] = useState(1); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
+  useEffect(() => { getOrders(page).then((result) => { setOrders(result.data); setLastPage(result.pagination.last_page); }).catch(() => setError('Unable to load your orders.')).finally(() => setLoading(false)); }, [page]);
+  const money = (amount: number, currency: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+  return <div className="page-shell section-space"><AccountNav /><div className="mt-14"><p className="eyebrow text-plum">Purchase history</p><h1 className="editorial-title mt-3 text-5xl">Your orders</h1>{error && <p role="alert" className="mt-8 border border-rose/60 bg-ivory p-4 text-sm text-plum">{error}</p>}{loading ? <p className="mt-10 text-sm text-muted">Loading your orders...</p> : <div className="mt-10 divide-y divide-line border-y border-line">{orders.map((order) => <Link href={`/account/orders/${order.public_id}`} key={order.public_id} className="grid gap-4 py-6 hover:bg-ivory md:grid-cols-[1.4fr_1fr_1fr_1fr] md:items-center"><div><p className="text-sm font-semibold">{order.order_number}</p><p className="mt-1 text-xs text-muted">{new Date(order.created_at).toLocaleDateString()} · {order.item_count} items</p></div><span className="text-xs uppercase tracking-[.12em] text-muted">{order.status}</span><span className="text-xs uppercase tracking-[.12em] text-muted">Payment: {order.payment_status}</span><span className="text-sm md:text-right">{money(order.grand_total_amount, order.currency)}</span></Link>)}{!orders.length && <p className="py-8 text-sm text-muted">You have no orders yet.</p>}</div>}{lastPage > 1 && <div className="mt-8 flex items-center gap-5 text-xs font-semibold uppercase tracking-[.14em]"><button disabled={page === 1} onClick={() => setPage((current) => current - 1)} className="disabled:text-muted">Previous</button><span>{page} / {lastPage}</span><button disabled={page === lastPage} onClick={() => setPage((current) => current + 1)} className="disabled:text-muted">Next</button></div>}</div></div>;
 }

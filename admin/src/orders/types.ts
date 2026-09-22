@@ -12,4 +12,6 @@ export type OrderDetail = OrderSummary & {
   items: Array<{ product_name: string; variant_name: string | null; sku: string; option_values: Record<string, string>; quantity: number; unit_price_amount: number; total_amount: number; currency: string }>
   payment: { status: string; provider: string | null; method_type: string | null; amount: number | null; currency: string; provider_reference: string | null; paid_at: string | null; transactions: Array<{ type: string; status: string; amount: number; currency: string; processed_at: string }> }
   status_history: Array<{ from: OrderStatus | null; to: OrderStatus; changed_at: string; actor: { name: string; email: string } | null }>
+  fulfillment_history: Array<{ from: string; to: string; changed_at: string; actor: { name: string; email: string } | null }>
+  inventory: { reserved: number; sold: number; released: number; state: string }
 }

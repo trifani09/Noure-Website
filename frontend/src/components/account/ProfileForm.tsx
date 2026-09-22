@@ -1,0 +1,12 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { updateProfile } from "@/services/account-api";
+
+export function ProfileForm() {
+  const { customer, setCustomer } = useAuth();
+  const [saving, setSaving] = useState(false); const [feedback, setFeedback] = useState(""); const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setSaving(true); setFeedback(""); setError(""); const data = new FormData(event.currentTarget); try { const next = await updateProfile({ first_name: String(data.get('first_name')).trim(), last_name: String(data.get('last_name')).trim(), phone: String(data.get('phone')).trim() }); setCustomer(next); setFeedback('Your profile has been saved.'); } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to save your profile.'); } finally { setSaving(false); } }
+  return <form onSubmit={submit} className="mt-10 max-w-xl space-y-6">{error && <p role="alert" className="border border-rose/60 bg-ivory p-4 text-sm text-plum">{error}</p>}{feedback && <p role="status" className="border border-line bg-ivory p-4 text-sm">{feedback}</p>}<div className="grid gap-5 md:grid-cols-2">{[['first_name', 'First name', customer?.first_name], ['last_name', 'Last name', customer?.last_name]].map(([name, label, value]) => <label key={name as string}><span className="mb-2 block text-xs font-semibold uppercase tracking-[.14em]">{label}</span><input name={name as string} defaultValue={value as string} required className="focus-ring w-full border border-line bg-paper px-3 py-3 text-sm" /></label>)}</div><label className="block"><span className="mb-2 block text-xs font-semibold uppercase tracking-[.14em]">Email</span><input value={customer?.email ?? ''} readOnly className="w-full border border-line bg-ivory px-3 py-3 text-sm text-muted" /></label><label className="block"><span className="mb-2 block text-xs font-semibold uppercase tracking-[.14em]">Phone</span><input name="phone" defaultValue={customer?.phone ?? ''} required className="focus-ring w-full border border-line bg-paper px-3 py-3 text-sm" /></label><button disabled={saving} className="button-primary disabled:opacity-50">{saving ? 'Saving...' : 'Save changes'}</button></form>;
+}

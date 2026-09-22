@@ -338,6 +338,12 @@ Do not soft-delete orders, order items, payments, payment transactions, inventor
 - Writes lock the inventory row (`SELECT ... FOR UPDATE`) or use the `version` field for optimistic concurrency.
 - Reservation creation, expiry, checkout conversion, cancellation, and return are explicit movement types.
 - The inventory ledger is operational history, while `inventory_levels` is the fast current-state projection. Reconciliation can rebuild/verify the projection from movements.
+
+### Implemented order reservation lifecycle
+
+Order creation increases `inventory_levels.reserved` and appends a negative `reservation` movement without changing `on_hand`. A verified paid payment converts each reservation exactly once: both `on_hand` and `reserved` decrease by the reserved quantity and a negative `sale` movement is appended. Failed, expired, or pre-sale cancelled orders decrease `reserved` without changing `on_hand` and append a positive `release` movement. An order whose reservation is already converted to `sale` cannot be cancelled back into stock; a future return/refund workflow must perform that operation explicitly.
+
+All three mutations lock inventory rows and use the order public ID as the movement reference. Existing `sale` and `release` movements make conversion and release idempotent.
 - Negative availability is rejected. Whether physical `on_hand` may become negative during reconciliation should be an explicit admin policy and defaults to disallowed.
 
 ## Naming and data conventions

@@ -2,6 +2,8 @@
 
 namespace App\Payments;
 
+use App\Inventory\InventoryLifecycleException;
+use App\Inventory\OrderInventoryService;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
@@ -13,16 +15,17 @@ class PaymentService
 {
     /** @var array<string, array<int, string>> */
     private const STATUS_TRANSITIONS = [
-        'pending' => ['authorized', 'paid', 'failed', 'cancelled'],
+        'pending' => ['authorized', 'paid', 'failed', 'expired', 'cancelled'],
         'authorized' => ['paid', 'failed', 'cancelled'],
         'paid' => ['partially_refunded', 'refunded'],
         'partially_refunded' => ['refunded'],
         'failed' => [],
+        'expired' => [],
         'cancelled' => [],
         'refunded' => [],
     ];
 
-    public function __construct(private readonly PaymentGatewayInterface $gateway) {}
+    public function __construct(private readonly PaymentGatewayInterface $gateway, private readonly OrderInventoryService $inventory) {}
 
     public function create(Order $order, string $idempotencyKey): Payment
     {
@@ -89,8 +92,18 @@ class PaymentService
                 $changes['status'] = $status;
             }
             if ($mayTransition && $status === 'paid') {
+                try {
+                    $this->inventory->convertReservationsToSale($payment->order);
+                } catch (InventoryLifecycleException $exception) {
+                    throw new PaymentException($exception->errorCode, $exception->getMessage());
+                }
                 $changes['paid_at'] = now();
-            } elseif ($mayTransition && in_array($status, ['failed', 'cancelled'], true)) {
+            } elseif ($mayTransition && in_array($status, ['failed', 'cancelled', 'expired'], true)) {
+                try {
+                    $this->inventory->releaseReservations($payment->order, reason: 'Released after payment '.$status);
+                } catch (InventoryLifecycleException $exception) {
+                    throw new PaymentException($exception->errorCode, $exception->getMessage());
+                }
                 $changes['failed_at'] = now();
                 $changes['failure_code'] = (string) ($payload['transaction_status'] ?? $status);
                 $changes['failure_message'] = mb_substr((string) ($payload['status_message'] ?? 'Payment was not successful.'), 0, 500);

@@ -133,6 +133,17 @@ class CheckoutApiTest extends TestCase
         $this->assertDatabaseHas('carts', ['id' => $cart->id, 'status' => 'active']);
     }
 
+    public function test_competing_order_reservations_do_not_oversell(): void
+    {
+        [$firstToken] = $this->guestCart(6);
+        [$secondToken] = $this->guestCart(3);
+        $this->withUnencryptedCookie('noure_cart', $firstToken)->postJson('/api/v1/orders', $this->guestPayload())->assertCreated();
+        $this->withUnencryptedCookie('noure_cart', $secondToken)->postJson('/api/v1/orders', $this->guestPayload())
+            ->assertConflict()->assertJsonPath('meta.errors.0.code', 'insufficient_stock');
+        $this->assertDatabaseHas('inventory_levels', ['id' => $this->level->id, 'reserved' => 7]);
+        $this->assertDatabaseCount('orders', 1);
+    }
+
     private function guestCart(int $quantity): array
     {
         $token = Str::random(64);

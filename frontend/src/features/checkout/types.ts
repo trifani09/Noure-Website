@@ -63,7 +63,7 @@ export type Payment = {
   provider: string;
   provider_payment_id: string | null;
   method_type: string;
-  status: "pending" | "authorized" | "paid" | "failed" | "cancelled" | "partially_refunded" | "refunded";
+  status: "pending" | "authorized" | "paid" | "failed" | "expired" | "cancelled" | "partially_refunded" | "refunded";
   amount: number;
   currency: string;
   redirect_url: string | null;

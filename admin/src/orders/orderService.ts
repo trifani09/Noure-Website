@@ -11,3 +11,7 @@ export async function updateOrderStatus(publicId: string, status: OrderStatus) {
   await initializeCsrf()
   return apiRequest<{ data: OrderDetail; meta: object; message: string | null }>(`/api/v1/admin/orders/${publicId}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
 }
+export async function updateFulfillmentStatus(publicId: string, status: 'processing' | 'shipped' | 'fulfilled') {
+  await initializeCsrf()
+  return apiRequest<{ data: OrderDetail; meta: object; message: string | null }>(`/api/v1/admin/orders/${publicId}/fulfillment`, { method: 'PUT', body: JSON.stringify({ status }) })
+}
