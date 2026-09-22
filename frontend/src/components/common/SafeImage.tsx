@@ -1,8 +1,17 @@
 "use client";
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
-export function SafeImage({ alt, onError, ...props }: ImageProps) {
+type SafeImageProps = ImageProps & { fallbackSrc?: ImageProps["src"] };
+
+export function SafeImage({
+  alt,
+  onError,
+  src,
+  fallbackSrc,
+  ...props
+}: SafeImageProps) {
   const [failed, setFailed] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
   if (failed)
     return (
       <>
@@ -20,9 +29,11 @@ export function SafeImage({ alt, onError, ...props }: ImageProps) {
   return (
     <Image
       {...props}
+      src={usingFallback && fallbackSrc ? fallbackSrc : src}
       alt={alt}
       onError={(event) => {
-        setFailed(true);
+        if (fallbackSrc && !usingFallback) setUsingFallback(true);
+        else setFailed(true);
         onError?.(event);
       }}
     />

@@ -3,6 +3,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { CartDrawer, CartProvider } from "@/features/cart";
+import { getCategories } from "@/features/categories";
+import type { Category } from "@/types/catalog";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,13 +17,20 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  let categories: Category[] = [];
+  try {
+    categories = (await getCategories({ per_page: 12, sort: "position" })).data;
+  } catch {
+    // Navigation remains usable while the catalog API is unavailable.
+  }
+
   return (
     <html lang="en" className="antialiased">
       <body>
         <AuthProvider>
           <CartProvider>
-            <Header />
+            <Header categories={categories} />
             <CartDrawer />
             <main className="min-h-[70vh]">{children}</main>
             <Footer />

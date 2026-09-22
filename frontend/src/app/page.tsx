@@ -6,6 +6,7 @@ import { FeaturedProducts } from "@/components/homepage/FeaturedProducts";
 import { HeroBanner } from "@/components/homepage/HeroBanner";
 import { NewsletterSection } from "@/components/homepage/NewsletterSection";
 import { PromotionalBanner } from "@/components/homepage/PromotionalBanner";
+import { ServicePromise } from "@/components/homepage/ServicePromise";
 import { getHomepageExperience } from "@/services/homepageService";
 import type { HomepageSection } from "@/types/catalog";
 
@@ -90,11 +91,10 @@ export default async function Home() {
         <HeroBanner banner={hero} />
       ) : (
         !hasCmsContent && (
-          <FallbackHero
-            product={products.find((product) => product.primary_image)}
-          />
+          <FallbackHero />
         )
       )}
+      <ServicePromise />
       {hasCmsContent ? (
         homepage.sections.map((section) => {
           switch (section.type) {

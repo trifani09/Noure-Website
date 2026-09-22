@@ -1,16 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/common/SafeImage";
 import type { HomepageBanner } from "@/types/catalog";
 export function HeroBanner({ banner }: { banner: HomepageBanner }) {
   return (
     <section className="relative min-h-[72vh] overflow-hidden bg-espresso md:min-h-[82vh]">
       {" "}
-      <Image
+      <SafeImage
         fill
         priority
         sizes="100vw"
         className="object-cover opacity-90"
         src={banner.desktop_image_url}
+        fallbackSrc="/images/editorial/noure-campaign-hero.png"
         alt={banner.alt_text ?? banner.headline ?? "Noure collection"}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/60 via-ink/15 to-transparent" />
