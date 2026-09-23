@@ -1,1 +1,1 @@
-export { getProduct, getProducts } from "@/services/api";
+export { getProduct, getProductFilters, getProducts } from "@/services/api";

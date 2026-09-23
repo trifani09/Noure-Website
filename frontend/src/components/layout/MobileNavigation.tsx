@@ -43,7 +43,7 @@ export function MobileNavigation({
             <Link
               onClick={onClose}
               className="border-b border-line py-5 font-serif text-2xl"
-              key={link.href}
+              key={`${link.href}-${link.label}`}
               href={link.href}
             >
               {link.label}

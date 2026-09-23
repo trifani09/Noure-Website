@@ -1,1 +1,5 @@
-export { getProduct, getProducts } from "@/services/productService";
+export {
+  getProduct,
+  getProductFilters,
+  getProducts,
+} from "@/services/productService";

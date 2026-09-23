@@ -9,7 +9,7 @@ import type { Category } from "@/types/catalog";
 const mainLinks: NavigationItem[] = [
   { href: "/", label: "Home" },
   { href: "/products?sort=newest", label: "New arrivals" },
-  { href: "/products", label: "Best seller" },
+  { href: "/products?sort=best_selling", label: "Best sellers" },
   { href: "/products", label: "All product" },
 ];
 
@@ -48,22 +48,30 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
             {mainLinks.slice(0, 3).map((link) => (
               <Link className="focus-ring flex h-full items-center text-[13px] uppercase tracking-[.02em] hover:text-plum" key={link.label} href={link.href}>{link.label}</Link>
             ))}
-            <div className="group relative flex h-full items-center">
+            <div className="group static flex h-full items-center">
               <button className="focus-ring flex items-center gap-2 text-[13px] uppercase tracking-[.02em] hover:text-plum" type="button">
                 Categories
                 <svg aria-hidden viewBox="0 0 12 8" className="h-2 w-3 fill-none stroke-current stroke-[1.4]"><path d="m1 1.5 5 5 5-5" /></svg>
               </button>
-              <div className="invisible absolute left-0 top-full w-64 translate-y-2 border border-line bg-paper p-3 opacity-0 shadow-[0_18px_45px_rgba(33,28,26,.12)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                {categories.slice(0, 8).map((category) => (
-                  <Link key={category.public_id} href={`/category/${category.slug}`} className="block border-b border-line px-3 py-3 text-xs uppercase tracking-[.08em] last:border-0 hover:bg-ivory hover:text-plum">{category.name}</Link>
-                ))}
-                <Link href="/products" className="block px-3 py-3 text-xs font-semibold uppercase tracking-[.08em] text-plum">View all categories</Link>
+              <div className="invisible absolute inset-x-0 top-full translate-y-2 border-y border-line bg-paper opacity-0 shadow-[0_18px_45px_rgba(33,28,26,.12)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                <div className="page-shell grid grid-cols-[13rem_1fr] gap-12 py-8">
+                  <div className="border-r border-line pr-8">
+                    <p className="eyebrow text-plum">Shop Noure</p>
+                    <p className="mt-3 text-sm leading-6 text-muted">Explore the collection by silhouette and occasion.</p>
+                    <Link href="/products" className="mt-6 inline-block text-xs font-semibold uppercase tracking-[.12em] underline underline-offset-4">View all products</Link>
+                  </div>
+                  <div className="grid grid-cols-3 gap-x-8">
+                    {categories.map((category) => (
+                      <Link key={category.public_id} href={`/category/${category.slug}`} className="border-b border-line px-1 py-3 text-xs uppercase tracking-[.08em] hover:text-plum">{category.name}</Link>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
             <Link className="focus-ring flex h-full items-center text-[13px] uppercase tracking-[.02em] hover:text-plum" href="/products">All product</Link>
           </nav>
 
-          <Link href="/" className="focus-ring editorial-title absolute left-1/2 -translate-x-1/2 text-2xl tracking-[.18em] lg:hidden">NOURE</Link>
+          <Link href="/" aria-label="Noure home" className="focus-ring editorial-title absolute left-1/2 -translate-x-1/2 text-2xl tracking-[.18em]">NOURE</Link>
 
           <div className="flex items-center gap-5">
             <button type="button" aria-label="Search" onClick={() => setSearchOpen((value) => !value)} className="focus-ring hover:text-plum"><SearchIcon /></button>

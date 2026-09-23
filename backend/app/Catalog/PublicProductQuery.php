@@ -8,11 +8,13 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 class PublicProductQuery
 {
     /**
-     * @param  array{per_page?: int, category?: string, search?: string, min_price?: int, max_price?: int, availability?: string, sort?: string}  $filters
+     * @param  array{per_page?: int, category?: string, search?: string, min_price?: int, max_price?: int, availability?: string, color?: string, size?: string, discounted?: bool, sort?: string}  $filters
      * @return LengthAwarePaginator<Product>
      */
     public function paginate(array $filters): LengthAwarePaginator
@@ -44,6 +46,28 @@ class PublicProductQuery
         if (isset($filters['availability'])) {
             $method = $filters['availability'] === 'available' ? 'whereExists' : 'whereNotExists';
             $query->{$method}($this->availableVariantSubquery());
+        }
+
+        $selectedOptions = array_filter([
+            'color' => $filters['color'] ?? null,
+            'size' => $filters['size'] ?? null,
+        ]);
+        if ($selectedOptions !== []) {
+            $query->whereHas('variants', function (Builder $variants) use ($selectedOptions): void {
+                $variants->where('is_active', true);
+                foreach ($selectedOptions as $optionCode => $valueCode) {
+                    $variants->whereHas('optionValues', fn (Builder $values) => $values
+                        ->where('code', $valueCode)
+                        ->whereHas('option', fn (Builder $option) => $option->where('code', $optionCode)));
+                }
+            });
+        }
+
+        if ($filters['discounted'] ?? false) {
+            $query->whereHas('variants', fn (Builder $variants) => $variants
+                ->where('is_active', true)
+                ->whereNotNull('compare_at_amount')
+                ->whereColumn('compare_at_amount', '>', 'price_amount'));
         }
 
         $this->applySort($query, $filters['sort'] ?? 'newest');
@@ -82,6 +106,34 @@ class PublicProductQuery
         return Category::query()->publiclyVisible()->where('slug', $slug)->exists();
     }
 
+    /** @return array<string, array<int, array{code: string, label: string, swatch_value: ?string}>> */
+    public function filterOptions(): array
+    {
+        return DB::table('product_option_values as values')
+            ->join('product_options as options', 'options.id', '=', 'values.product_option_id')
+            ->join('variant_option_values as selections', 'selections.product_option_value_id', '=', 'values.id')
+            ->join('product_variants as variants', 'variants.id', '=', 'selections.variant_id')
+            ->join('products', 'products.id', '=', 'options.product_id')
+            ->whereIn('options.code', ['color', 'size'])
+            ->where('variants.is_active', true)
+            ->whereNull('variants.deleted_at')
+            ->where('products.status', 'active')
+            ->whereNull('products.deleted_at')
+            ->whereNotNull('products.published_at')
+            ->where('products.published_at', '<=', now())
+            ->select(['options.code as option_code', 'values.code', 'values.label', 'values.swatch_value'])
+            ->distinct()
+            ->orderBy('values.label')
+            ->get()
+            ->groupBy('option_code')
+            ->map(fn ($values) => $values->map(fn ($value) => [
+                'code' => $value->code,
+                'label' => $value->label,
+                'swatch_value' => $value->swatch_value,
+            ])->values()->all())
+            ->all();
+    }
+
     /** @return Builder<Product> */
     private function baseQuery(): Builder
     {
@@ -90,6 +142,7 @@ class PublicProductQuery
             ->select('products.*')
             ->selectSub($this->priceSubquery('min'), 'minimum_price_amount')
             ->selectSub($this->priceSubquery('max'), 'maximum_price_amount')
+            ->selectSub($this->soldQuantitySubquery(), 'sold_quantity')
             ->selectRaw('EXISTS('.$this->availableVariantSubquery()->toSql().') as public_available', $this->availableVariantSubquery()->getBindings());
     }
 
@@ -104,7 +157,11 @@ class PublicProductQuery
                 })
                 ->orderByDesc('is_primary')
                 ->orderBy('sort_order'),
-            'variants' => fn ($variants) => $variants->where('is_active', true)->orderByDesc('is_default')->orderBy('id'),
+            'variants' => fn ($variants) => $variants
+                ->where('is_active', true)
+                ->with(['optionValues.option'])
+                ->orderByDesc('is_default')
+                ->orderBy('id'),
         ];
     }
 
@@ -131,16 +188,27 @@ class PublicProductQuery
             ->whereRaw('inventory_levels.on_hand > inventory_levels.reserved + inventory_levels.safety_stock');
     }
 
+    private function soldQuantitySubquery(): QueryBuilder
+    {
+        return DB::table('order_items')
+            ->selectRaw('COALESCE(SUM(order_items.quantity), 0)')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereColumn('order_items.product_id', 'products.id')
+            ->where('orders.payment_status', 'paid')
+            ->where('orders.status', '!=', 'cancelled');
+    }
+
     /** @param Builder<Product> $query */
     private function applySort(Builder $query, string $sort): void
     {
         match ($sort) {
-            'oldest' => $query->orderBy('products.created_at')->orderBy('products.id'),
+            'best_selling' => $query->orderByDesc('sold_quantity')->orderByDesc('products.published_at')->orderByDesc('products.id'),
+            'oldest' => $query->orderBy('products.published_at')->orderBy('products.id'),
             'price_asc' => $query->orderBy('minimum_price_amount')->orderBy('products.id'),
             'price_desc' => $query->orderByDesc('minimum_price_amount')->orderBy('products.id'),
             'name_asc' => $query->orderBy('products.name')->orderBy('products.id'),
             'name_desc' => $query->orderByDesc('products.name')->orderBy('products.id'),
-            default => $query->orderByDesc('products.created_at')->orderByDesc('products.id'),
+            default => $query->orderByDesc('products.published_at')->orderByDesc('products.id'),
         };
     }
 

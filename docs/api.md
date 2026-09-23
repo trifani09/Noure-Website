@@ -142,9 +142,16 @@ Product collection parameters:
 | `min_price` | Non-negative integer minor units; an eligible variant must be at least this value. |
 | `max_price` | Non-negative integer minor units; an eligible variant must be at most this value. |
 | `availability` | `available` or `unavailable`. |
-| `sort` | `newest`, `oldest`, `price_asc`, `price_desc`, `name_asc`, or `name_desc`. |
+| `color` | Exact public color option code. |
+| `size` | Exact public size option code. |
+| `discounted` | Boolean; when true, returns products with an active variant whose compare-at price exceeds its price. |
+| `sort` | `newest`, `best_selling`, `oldest`, `price_asc`, `price_desc`, `name_asc`, or `name_desc`. |
 
-`min_price` cannot exceed `max_price`. Public filters inspect public variants; admin filters inspect non-deleted variants. Price sorts use each product's lowest eligible variant price and return each product once. `newest` (default) and `oldest` use `created_at`; name sorts use database collation. Unsupported filters/sorts return `422`.
+`min_price` cannot exceed `max_price`. Public filters inspect public variants; admin filters inspect non-deleted variants. Price sorts use each product's lowest eligible variant price and return each product once. `best_selling` ranks products by quantity in paid, non-cancelled orders; products without sales remain visible after sold products. Public `newest` (default) and `oldest` use `published_at`; name sorts use database collation. Unsupported filters/sorts return `422`.
+
+### `GET /api/v1/products/filters`
+
+Returns the available color and size option values used by currently public products with active variants. Each value contains `code`, `label`, and nullable `swatch_value`.
 
 ## Public categories
 
@@ -209,7 +216,7 @@ Query `include_product_count` defaults to `true` and controls counts on the cate
 
 ### `GET /api/v1/products`
 
-Returns public products and supports shared pagination, `category`, `search`, `min_price`, `max_price`, `availability`, and `sort`. Unknown/non-public category slugs return `404 category_not_found` instead of an empty collection.
+Returns public products and supports shared pagination, `category`, `search`, `min_price`, `max_price`, `availability`, `color`, `size`, `discounted`, and `sort`. Unknown/non-public category slugs return `404 category_not_found` instead of an empty collection.
 
 Example product listing:
 
@@ -227,6 +234,12 @@ Example product listing:
         "width": 1200,
         "height": 1500
       },
+      "secondary_image": {
+        "url": "https://cdn.noure.example/products/luna/back.webp",
+        "alt_text": "Luna dress back view",
+        "width": 1200,
+        "height": 1500
+      },
       "primary_category": {
         "public_id": "01K5B2W4EPQX0BD7MNH9AK8CZT",
         "name": "Midi Dresses",
@@ -235,6 +248,10 @@ Example product listing:
       "price": { "price_amount": 399000, "compare_at_amount": 449000, "currency": "IDR" },
       "price_range": { "min_price_amount": 399000, "max_price_amount": 429000, "currency": "IDR" },
       "available": true,
+      "is_new": true,
+      "is_best_seller": true,
+      "colors": [{ "code": "cream", "label": "Cream", "swatch_value": "#F4E9D8" }],
+      "quick_add_variant_id": null,
       "published_at": "2026-09-10T03:00:00Z"
     }
   ],
@@ -243,7 +260,7 @@ Example product listing:
 }
 ```
 
-`price` is the active default variant's price; `price_range` spans active variants. Stored data must maintain one active default.
+`price` is the active default variant's price; `price_range` spans active variants. `quick_add_variant_id` is only returned when the product has exactly one active, available variant. Stored data must maintain one active default.
 
 ### `GET /api/v1/products/{slug}`
 

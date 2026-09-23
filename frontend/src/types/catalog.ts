@@ -30,6 +30,7 @@ export type ProductSummary = {
   slug: string;
   short_description: string | null;
   primary_image: ImageRef | null;
+  secondary_image: ImageRef | null;
   primary_category: Pick<Category, "public_id" | "name" | "slug"> | null;
   price: Price;
   price_range: {
@@ -38,6 +39,10 @@ export type ProductSummary = {
     currency: string;
   };
   available: boolean;
+  is_new: boolean;
+  is_best_seller: boolean;
+  colors: ProductFilterOption[];
+  quick_add_variant_id: string | null;
   published_at: string;
 };
 export type ProductOption = {
@@ -50,6 +55,15 @@ export type ProductOption = {
     swatch_value: string | null;
     sort_order: number;
   }[];
+};
+export type ProductFilterOption = {
+  code: string;
+  label: string;
+  swatch_value: string | null;
+};
+export type ProductFilters = {
+  color?: ProductFilterOption[];
+  size?: ProductFilterOption[];
 };
 export type ProductVariant = {
   public_id: string;

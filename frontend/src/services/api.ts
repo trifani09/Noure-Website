@@ -4,6 +4,7 @@ import type {
   Homepage,
   Pagination,
   ProductDetail,
+  ProductFilters,
   ProductSummary,
 } from "@/types/catalog";
 const API_URL = (
@@ -53,6 +54,9 @@ export async function getProducts(
     pagination: (response.meta as { pagination: Pagination }).pagination,
   };
 }
+export const getProductFilters = cache(
+  async () => (await request<ProductFilters>("/products/filters")).data,
+);
 export const getProduct = cache(
   async (slug: string) =>
     (await request<ProductDetail>(`/products/${encodeURIComponent(slug)}`))

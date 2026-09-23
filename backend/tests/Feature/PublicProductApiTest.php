@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\InventoryLevel;
 use App\Models\InventoryLocation;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductOption;
@@ -28,12 +30,18 @@ class PublicProductApiTest extends TestCase
 
     public function test_product_listing_returns_contract_shape(): void
     {
-        [$product] = $this->createPublicProduct(['name' => 'Luna Dress', 'slug' => 'luna-dress'], [
+        [$product, $variant] = $this->createPublicProduct(['name' => 'Luna Dress', 'slug' => 'luna-dress'], [
             'price_amount' => 399000, 'compare_at_amount' => 449000, 'currency' => 'IDR',
         ], 10);
         $category = Category::factory()->create(['name' => 'Dresses', 'slug' => 'dresses']);
         $product->categories()->attach($category, ['is_primary' => true, 'sort_order' => 0]);
-        ProductImage::factory()->for($product)->create(['path' => 'products/luna.webp']);
+        ProductImage::factory()->for($product)->create(['path' => 'products/luna.webp', 'is_primary' => true]);
+        ProductImage::factory()->for($product)->create(['path' => 'products/luna-back.webp', 'is_primary' => false]);
+        $color = ProductOption::factory()->for($product)->create(['name' => 'Color', 'code' => 'color']);
+        $cream = ProductOptionValue::factory()->for($color, 'option')->create(['label' => 'Cream', 'code' => 'cream', 'swatch_value' => '#F4E9D8']);
+        $variant->optionValues()->attach($cream);
+        $paidOrder = Order::factory()->create(['payment_status' => 'paid', 'status' => 'completed']);
+        OrderItem::factory()->for($paidOrder)->for($product)->for($variant, 'variant')->create(['quantity' => 2]);
 
         $this->getJson('/api/v1/products')
             ->assertOk()
@@ -43,6 +51,12 @@ class PublicProductApiTest extends TestCase
             ->assertJsonPath('data.0.price.compare_at_amount', 449000)
             ->assertJsonPath('data.0.price.currency', 'IDR')
             ->assertJsonPath('data.0.available', true)
+            ->assertJsonPath('data.0.secondary_image.url', url('/storage/products/luna-back.webp'))
+            ->assertJsonPath('data.0.colors.0.code', 'cream')
+            ->assertJsonPath('data.0.colors.0.swatch_value', '#F4E9D8')
+            ->assertJsonPath('data.0.quick_add_variant_id', $variant->public_id)
+            ->assertJsonPath('data.0.is_best_seller', true)
+            ->assertJsonPath('data.0.is_new', true)
             ->assertJsonPath('meta.pagination.total', 1);
     }
 
@@ -158,11 +172,52 @@ class PublicProductApiTest extends TestCase
         $this->getJson('/api/v1/products?availability=unavailable')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.public_id', $unavailable->public_id);
     }
 
+    public function test_option_and_discount_filters_match_the_same_active_variant(): void
+    {
+        [$matching, $matchingVariant] = $this->createPublicProduct(['slug' => 'matching'], [
+            'price_amount' => 300000,
+            'compare_at_amount' => 350000,
+        ]);
+        [$other, $otherVariant] = $this->createPublicProduct(['slug' => 'other']);
+
+        foreach ([[$matching, $matchingVariant, 'sage', 'm'], [$other, $otherVariant, 'black', 's']] as [$product, $variant, $colorCode, $sizeCode]) {
+            $color = ProductOption::factory()->for($product)->create(['name' => 'Color', 'code' => 'color']);
+            $colorValue = ProductOptionValue::factory()->for($color, 'option')->create(['label' => ucfirst($colorCode), 'code' => $colorCode]);
+            $size = ProductOption::factory()->for($product)->create(['name' => 'Size', 'code' => 'size']);
+            $sizeValue = ProductOptionValue::factory()->for($size, 'option')->create(['label' => strtoupper($sizeCode), 'code' => $sizeCode]);
+            $variant->optionValues()->attach([$colorValue->id, $sizeValue->id]);
+        }
+
+        $this->getJson('/api/v1/products?color=sage&size=m&discounted=1')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.public_id', $matching->public_id);
+    }
+
+    public function test_filter_options_only_include_values_from_public_active_variants(): void
+    {
+        [$visible, $visibleVariant] = $this->createPublicProduct(['slug' => 'visible']);
+        $color = ProductOption::factory()->for($visible)->create(['name' => 'Color', 'code' => 'color']);
+        $sage = ProductOptionValue::factory()->for($color, 'option')->create(['label' => 'Sage', 'code' => 'sage', 'swatch_value' => '#A8B5A2']);
+        $visibleVariant->optionValues()->attach($sage);
+
+        [$draft, $draftVariant] = $this->createPublicProduct(['slug' => 'draft-filter', 'status' => 'draft']);
+        $draftColor = ProductOption::factory()->for($draft)->create(['name' => 'Color', 'code' => 'color']);
+        $hidden = ProductOptionValue::factory()->for($draftColor, 'option')->create(['label' => 'Hidden', 'code' => 'hidden']);
+        $draftVariant->optionValues()->attach($hidden);
+
+        $this->getJson('/api/v1/products/filters')
+            ->assertOk()
+            ->assertJsonPath('data.color.0.code', 'sage')
+            ->assertJsonPath('data.color.0.swatch_value', '#A8B5A2')
+            ->assertJsonMissing(['code' => 'hidden']);
+    }
+
     public function test_all_supported_sort_modes(): void
     {
         Carbon::setTestNow('2026-09-16T00:00:00Z');
-        [$alpha] = $this->createPublicProduct(['name' => 'Alpha', 'slug' => 'alpha', 'created_at' => now()->subDay()], ['price_amount' => 200000]);
-        [$zulu] = $this->createPublicProduct(['name' => 'Zulu', 'slug' => 'zulu', 'created_at' => now()], ['price_amount' => 100000]);
+        [$alpha] = $this->createPublicProduct(['name' => 'Alpha', 'slug' => 'alpha', 'published_at' => now()->subDay()], ['price_amount' => 200000]);
+        [$zulu] = $this->createPublicProduct(['name' => 'Zulu', 'slug' => 'zulu', 'published_at' => now()], ['price_amount' => 100000]);
 
         foreach ([
             'newest' => $zulu->public_id, 'oldest' => $alpha->public_id,
@@ -172,6 +227,22 @@ class PublicProductApiTest extends TestCase
             $this->getJson('/api/v1/products?sort='.$sort)->assertOk()->assertJsonPath('data.0.public_id', $publicId);
         }
         Carbon::setTestNow();
+    }
+
+    public function test_best_selling_sort_counts_only_paid_non_cancelled_orders(): void
+    {
+        [$popular, $popularVariant] = $this->createPublicProduct(['name' => 'Popular', 'slug' => 'popular']);
+        [$newer, $newerVariant] = $this->createPublicProduct(['name' => 'Newer', 'slug' => 'newer']);
+
+        $paidOrder = Order::factory()->create(['payment_status' => 'paid', 'status' => 'completed']);
+        OrderItem::factory()->for($paidOrder)->for($popular)->for($popularVariant, 'variant')->create(['quantity' => 5]);
+
+        $cancelledOrder = Order::factory()->create(['payment_status' => 'paid', 'status' => 'cancelled']);
+        OrderItem::factory()->for($cancelledOrder)->for($newer)->for($newerVariant, 'variant')->create(['quantity' => 20]);
+
+        $this->getJson('/api/v1/products?sort=best_selling')
+            ->assertOk()
+            ->assertJsonPath('data.0.public_id', $popular->public_id);
     }
 
     public function test_product_pagination(): void
@@ -188,7 +259,7 @@ class PublicProductApiTest extends TestCase
 
     public function test_invalid_queries_return_documented_422_response(): void
     {
-        foreach (['per_page=101', 'availability=sometimes', 'sort=price', 'min_price=-1', 'min_price=500&max_price=100', 'search=', 'unsupported=value'] as $query) {
+        foreach (['per_page=101', 'availability=sometimes', 'discounted=maybe', 'sort=price', 'min_price=-1', 'min_price=500&max_price=100', 'search=', 'unsupported=value'] as $query) {
             $response = $this->getJson('/api/v1/products?'.$query);
             $this->assertSame(422, $response->status(), 'Query should be invalid: '.$query);
             $response->assertJsonPath('data', null)->assertJsonPath('message', 'Validation failed.')

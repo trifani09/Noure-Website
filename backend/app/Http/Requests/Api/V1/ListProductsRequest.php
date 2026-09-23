@@ -18,13 +18,16 @@ class ListProductsRequest extends CatalogRequest
             'min_price' => ['sometimes', 'integer', 'min:0'],
             'max_price' => ['sometimes', 'integer', 'min:0'],
             'availability' => ['sometimes', Rule::in(['available', 'unavailable'])],
-            'sort' => ['sometimes', Rule::in(['newest', 'oldest', 'price_asc', 'price_desc', 'name_asc', 'name_desc'])],
+            'color' => ['sometimes', 'filled', 'string', 'max:120'],
+            'size' => ['sometimes', 'filled', 'string', 'max:120'],
+            'discounted' => ['sometimes', 'boolean'],
+            'sort' => ['sometimes', Rule::in(['newest', 'best_selling', 'oldest', 'price_asc', 'price_desc', 'name_asc', 'name_desc'])],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        foreach (['category', 'search'] as $key) {
+        foreach (['category', 'search', 'color', 'size'] as $key) {
             if (array_key_exists($key, $this->query())) {
                 $this->merge([$key => trim((string) $this->query($key))]);
             }

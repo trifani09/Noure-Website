@@ -51,6 +51,15 @@ class PublicProductController extends Controller
         ]);
     }
 
+    public function filters(): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->products->filterOptions(),
+            'meta' => (object) [],
+            'message' => null,
+        ]);
+    }
+
     private function productNotFound(): JsonResponse
     {
         return $this->notFound('product_not_found', 'The requested product was not found.');

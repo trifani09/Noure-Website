@@ -16,6 +16,9 @@ export function SortDropdown({
         name="availability"
         value={params.availability ?? ""}
       />
+      <input type="hidden" name="color" value={params.color ?? ""} />
+      <input type="hidden" name="size" value={params.size ?? ""} />
+      <input type="hidden" name="discounted" value={params.discounted ?? ""} />
       <label className="sr-only" htmlFor="product-sort">
         Sort products
       </label>
@@ -26,6 +29,7 @@ export function SortDropdown({
         className="focus-ring border border-line bg-paper px-3 py-2.5 text-xs uppercase tracking-wider sm:px-4"
       >
         <option value="newest">Newest</option>
+        <option value="best_selling">Best sellers</option>
         <option value="oldest">Oldest</option>
         <option value="price_asc">Price: low to high</option>
         <option value="price_desc">Price: high to low</option>
