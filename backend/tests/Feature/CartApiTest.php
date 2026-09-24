@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Cart;
 use App\Models\Customer;
+use App\Models\Discount;
 use App\Models\InventoryLevel;
 use App\Models\InventoryLocation;
 use App\Models\Product;
@@ -84,6 +85,36 @@ class CartApiTest extends TestCase
         $this->actingAs($customer, 'customer')->postJson('/api/v1/cart/items', ['variant_public_id' => $this->variant->public_id, 'quantity' => 1])
             ->assertCreated()->assertJsonPath('data.item_count', 1);
         $this->assertDatabaseHas('carts', ['customer_id' => $customer->id, 'guest_token_hash' => null]);
+    }
+
+    public function test_guest_can_apply_and_remove_a_discount_code(): void
+    {
+        [$cookieName, $token] = $this->addGuestItem(2);
+        Discount::factory()->create(['code' => 'WELCOME15', 'value' => 1500]);
+
+        $this->withUnencryptedCookie($cookieName, $token)->withCredentials()
+            ->postJson('/api/v1/cart/discount', ['code' => 'welcome15'])
+            ->assertOk()
+            ->assertJsonPath('data.discount_amount', 45000)
+            ->assertJsonPath('data.total_amount', 255000)
+            ->assertJsonPath('data.applied_discount.code', 'WELCOME15');
+
+        $this->withUnencryptedCookie($cookieName, $token)->withCredentials()
+            ->deleteJson('/api/v1/cart/discount')
+            ->assertOk()
+            ->assertJsonPath('data.discount_amount', 0)
+            ->assertJsonPath('data.applied_discount', null);
+    }
+
+    public function test_invalid_or_ineligible_discount_is_rejected(): void
+    {
+        [$cookieName, $token] = $this->addGuestItem(1);
+        Discount::factory()->create(['code' => 'MINIMUM', 'minimum_order_amount' => 500000]);
+
+        $this->withUnencryptedCookie($cookieName, $token)->withCredentials()
+            ->postJson('/api/v1/cart/discount', ['code' => 'MINIMUM'])
+            ->assertUnprocessable()
+            ->assertJsonPath('meta.errors.0.code', 'discount_minimum_not_met');
     }
 
     private function addGuestItem(int $quantity): array

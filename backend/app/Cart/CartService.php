@@ -78,6 +78,11 @@ class CartService
         return $this->load($cart);
     }
 
+    public function refresh(Cart $cart): Cart
+    {
+        return $this->load($cart->fresh());
+    }
+
     private function availableVariant(string $publicId): ProductVariant
     {
         $variant = ProductVariant::query()->with(['product', 'inventoryLevels.location'])->where('public_id', $publicId)->where('is_active', true)->first();

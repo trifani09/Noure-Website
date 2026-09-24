@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Cart\CartException;
 use App\Cart\CartService;
+use App\Discounts\DiscountException;
+use App\Discounts\DiscountService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ApplyCartDiscountRequest;
 use App\Http\Requests\Api\V1\StoreCartItemRequest;
 use App\Http\Requests\Api\V1\UpdateCartItemRequest;
 use App\Http\Resources\Api\V1\CartResource;
@@ -18,7 +21,7 @@ class CartController extends Controller
 {
     private const COOKIE = 'noure_cart';
 
-    public function __construct(private readonly CartService $carts) {}
+    public function __construct(private readonly CartService $carts, private readonly DiscountService $discounts) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -63,12 +66,40 @@ class CartController extends Controller
         return response()->noContent();
     }
 
+    public function applyDiscount(ApplyCartDiscountRequest $request): JsonResponse
+    {
+        [$cart, $token] = $this->cart($request);
+        try {
+            $this->discounts->apply($cart, $this->customer(), $request->validated('code'));
+        } catch (DiscountException $exception) {
+            return $this->discountFailure($exception, $token);
+        }
+
+        return $this->response($request, $this->carts->refresh($cart), $token, message: 'Discount applied.');
+    }
+
+    public function removeDiscount(Request $request): JsonResponse
+    {
+        [$cart, $token] = $this->cart($request);
+        $cart->update(['discount_id' => null]);
+
+        return $this->response($request, $this->carts->refresh($cart), $token, message: 'Discount removed.');
+    }
+
     private function cart(Request $request): array
     {
         /** @var Customer|null $customer */
         $customer = Auth::guard('customer')->user();
 
         return $this->carts->resolve($customer, $request->cookie(self::COOKIE));
+    }
+
+    private function customer(): ?Customer
+    {
+        /** @var Customer|null $customer */
+        $customer = Auth::guard('customer')->user();
+
+        return $customer;
     }
 
     private function response(Request $request, $cart, ?string $token, int $status = 200, ?string $message = null): JsonResponse
@@ -81,6 +112,13 @@ class CartController extends Controller
     private function failure(CartException $exception, ?string $token): JsonResponse
     {
         $response = response()->json(['data' => null, 'meta' => ['errors' => [['code' => $exception->errorCode, 'message' => $exception->getMessage()]]], 'message' => $exception->getMessage()], $exception->status);
+
+        return $token ? $response->cookie(self::COOKIE, $token, 60 * 24 * 30, '/', null, app()->isProduction(), true, false, 'lax') : $response;
+    }
+
+    private function discountFailure(DiscountException $exception, ?string $token): JsonResponse
+    {
+        $response = response()->json(['data' => null, 'meta' => ['errors' => [['code' => $exception->errorCode, 'message' => $exception->getMessage()]]], 'message' => $exception->getMessage()], 422);
 
         return $token ? $response->cookie(self::COOKIE, $token, 60 * 24 * 30, '/', null, app()->isProduction(), true, false, 'lax') : $response;
     }

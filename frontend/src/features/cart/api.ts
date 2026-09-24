@@ -78,3 +78,14 @@ export async function removeCartItem(id: number) {
   await csrf();
   return request<void>(`/cart/items/${id}`, { method: "DELETE" });
 }
+export async function applyCartDiscount(code: string) {
+  await csrf();
+  return request<Cart>("/cart/discount", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+export async function removeCartDiscount() {
+  await csrf();
+  return request<Cart>("/cart/discount", { method: "DELETE" });
+}

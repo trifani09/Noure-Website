@@ -23,6 +23,9 @@ class PublicProductDetailResource extends JsonResource
             'short_description' => $this->short_description,
             'description' => $this->description,
             'brand' => $this->brand,
+            'material' => $this->metadata['material'] ?? null,
+            'care_instructions' => $this->metadata['care_instructions'] ?? null,
+            'shipping_information' => $this->metadata['shipping_information'] ?? null,
             'categories' => $this->categories->map(fn ($category) => [
                 'public_id' => $category->public_id,
                 'name' => $category->name,
@@ -66,6 +69,7 @@ class PublicProductDetailResource extends JsonResource
                 'compare_at_amount' => $variant->compare_at_amount,
                 'currency' => $variant->currency,
                 'available' => $this->variantAvailable($variant),
+                'inventory_status' => $this->variantInventoryStatus($variant),
                 'is_default' => (bool) $variant->is_default,
             ])->values(),
             'available' => (bool) $this->public_available,
@@ -77,9 +81,25 @@ class PublicProductDetailResource extends JsonResource
 
     private function variantAvailable(object $variant): bool
     {
-        return $variant->inventoryLevels->sum(
+        return $this->availableQuantity($variant) > 0;
+    }
+
+    private function variantInventoryStatus(object $variant): string
+    {
+        $available = $this->availableQuantity($variant);
+
+        return match (true) {
+            $available === 0 => 'out_of_stock',
+            $available <= 3 => 'low_stock',
+            default => 'in_stock',
+        };
+    }
+
+    private function availableQuantity(object $variant): int
+    {
+        return (int) $variant->inventoryLevels->sum(
             fn ($level) => max($level->on_hand - $level->reserved - $level->safety_stock, 0)
-        ) > 0;
+        );
     }
 
     private function imageUrl(string $path): string

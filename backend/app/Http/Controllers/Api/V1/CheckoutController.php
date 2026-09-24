@@ -6,8 +6,8 @@ use App\Cart\CartService;
 use App\Checkout\CheckoutException;
 use App\Checkout\OrderService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\StoreOrderRequest;
 use App\Http\Requests\Api\V1\ShippingMethodsRequest;
+use App\Http\Requests\Api\V1\StoreOrderRequest;
 use App\Http\Resources\Api\V1\CartResource;
 use App\Http\Resources\Api\V1\OrderResource;
 use App\Models\Cart;
@@ -35,7 +35,7 @@ class CheckoutController extends Controller
                 'public_id' => $address->public_id,
                 ...$address->only(['label', 'recipient_name', 'phone', 'line1', 'line2', 'city', 'province', 'postal_code', 'country_code', 'is_default_shipping']),
             ])->values() ?? [],
-            'totals' => ['subtotal_amount' => $cartData['subtotal_amount'], 'discount_amount' => 0, 'shipping_amount' => 0, 'grand_total_amount' => $cartData['subtotal_amount'], 'currency' => $cartData['currency']],
+            'totals' => ['subtotal_amount' => $cartData['subtotal_amount'], 'discount_amount' => $cartData['discount_amount'], 'shipping_amount' => 0, 'grand_total_amount' => $cartData['total_amount'], 'currency' => $cartData['currency']],
         ];
 
         return $this->response($data, $token);

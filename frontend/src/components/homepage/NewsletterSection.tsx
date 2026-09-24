@@ -1,3 +1,5 @@
+import { NewsletterForm } from "@/components/common/NewsletterForm";
+
 export function NewsletterSection() {
   return (
     <section className="page-shell py-20 md:py-28">
@@ -9,23 +11,9 @@ export function NewsletterSection() {
         <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-muted">
           Be the first to discover new arrivals and collection stories.
         </p>
-        <form className="mx-auto mt-9 flex max-w-md border-b border-ink">
-          <input
-            type="email"
-            aria-label="Email address"
-            placeholder="Your email address"
-            className="w-full bg-transparent py-4 text-sm outline-none"
-          />
-          <button
-            type="button"
-            className="focus-ring px-3 text-xs font-semibold uppercase tracking-[.18em]"
-          >
-            Join
-          </button>
-        </form>
-        <p className="mt-3 text-[10px] uppercase tracking-widest text-muted">
-          Newsletter signup is coming soon
-        </p>
+        <div className="mx-auto mt-9 max-w-md text-left">
+          <NewsletterForm source="homepage" />
+        </div>
       </div>
     </section>
   );

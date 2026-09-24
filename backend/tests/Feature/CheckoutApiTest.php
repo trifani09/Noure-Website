@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
+use App\Models\Discount;
 use App\Models\InventoryLevel;
 use App\Models\InventoryLocation;
 use App\Models\Product;
@@ -96,6 +97,27 @@ class CheckoutApiTest extends TestCase
             ->assertCreated()->assertJsonPath('data.items.0.unit_price_amount', 175000)
             ->assertJsonPath('data.grand_total_amount', 195000);
         $this->assertDatabaseHas('order_items', ['variant_id' => $this->variant->id, 'unit_price_amount' => 175000]);
+    }
+
+    public function test_checkout_revalidates_and_records_applied_discount(): void
+    {
+        [$token, $cart] = $this->guestCart(2);
+        $discount = Discount::factory()->create(['code' => 'SAVE15', 'value' => 1500]);
+        $cart->update(['discount_id' => $discount->id]);
+
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()->getJson('/api/v1/checkout')
+            ->assertOk()
+            ->assertJsonPath('data.totals.discount_amount', 45000)
+            ->assertJsonPath('data.totals.grand_total_amount', 255000);
+
+        $response = $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()
+            ->postJson('/api/v1/orders', $this->guestPayload())
+            ->assertCreated()
+            ->assertJsonPath('data.discount_amount', 45000)
+            ->assertJsonPath('data.grand_total_amount', 275000);
+
+        $this->assertDatabaseHas('discount_redemptions', ['discount_id' => $discount->id, 'code_snapshot' => 'SAVE15', 'amount' => 45000]);
+        $this->assertDatabaseHas('discounts', ['id' => $discount->id, 'used_count' => 1]);
     }
 
     public function test_inactive_variant_is_rejected(): void

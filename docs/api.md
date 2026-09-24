@@ -6,7 +6,7 @@ This document defines the version 1 HTTP/JSON contract for Noure's existing publ
 
 The running v1 application also exposes authenticated customer account endpoints described below.
 
-Covered here are public category/product reads, admin category/product management, variants, and inventory. Cart, checkout, orders, payments, discounts, banners, uploads, restore, and permanent purge are outside this contract.
+Covered here are public category/product reads, admin category/product management, variants, inventory, and the customer-facing discount-code flow. Other commerce endpoints are documented alongside their implementation.
 
 ## Versioning and transport
 
@@ -212,6 +212,17 @@ Returns the same category schema plus `ancestors` (summary objects ordered root-
 
 Query `include_product_count` defaults to `true` and controls counts on the category and children. An absent, inactive, or deleted category returns `404 category_not_found`.
 
+## Cart discounts
+
+- `POST /api/v1/cart/discount` with `{ "code": "WELCOME15" }` applies one active discount to the current cart.
+- `DELETE /api/v1/cart/discount` removes the applied discount.
+
+Codes are normalized to uppercase and revalidated when the order is created. Percentage values use basis points; fixed discounts use minor currency units. Schedule, minimum order, global usage, per-customer usage, product/category targeting, currency, and maximum-discount rules are enforced server-side. The cart response includes `discount_amount`, `total_amount`, and nullable `applied_discount`.
+
+## Newsletter subscriptions
+
+`POST /api/v1/newsletter/subscriptions` accepts an email and a source of `homepage` or `footer`. Emails are normalized to lowercase. Repeated submissions are idempotent and reactivate previously unsubscribed records. The public endpoint is rate-limited to five attempts per minute.
+
 ## Public products
 
 ### `GET /api/v1/products`
@@ -263,6 +274,8 @@ Example product listing:
 `price` is the active default variant's price; `price_range` spans active variants. `quick_add_variant_id` is only returned when the product has exactly one active, available variant. Stored data must maintain one active default.
 
 ### `GET /api/v1/products/{slug}`
+
+Product details include storefront metadata (`material`, `care_instructions`, and `shipping_information`) when configured. Each active variant exposes `inventory_status` as `in_stock`, `low_stock`, or `out_of_stock`; raw inventory quantities remain private.
 
 Returns one public product. An absent, unpublished, draft, archived, or deleted product returns `404 product_not_found` without disclosing hidden existence.
 

@@ -24,6 +24,8 @@ export type Cart = {
   items: CartItem[];
   item_count: number;
   subtotal_amount: number;
+  discount_amount: number;
   total_amount: number;
+  applied_discount: { code: string; name: string; amount: number } | null;
   currency: string;
 };

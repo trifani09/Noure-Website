@@ -2,6 +2,8 @@
 
 namespace App\Checkout;
 
+use App\Discounts\DiscountException;
+use App\Discounts\DiscountService;
 use App\Events\OrderCreated;
 use App\Models\Address;
 use App\Models\Cart;
@@ -16,7 +18,7 @@ use Illuminate\Support\Str;
 
 class OrderService
 {
-    public function __construct(private readonly ShippingRateService $shipping) {}
+    public function __construct(private readonly ShippingRateService $shipping, private readonly DiscountService $discounts) {}
 
     /** @param array<string, mixed> $input */
     public function create(Cart $cart, ?Customer $customer, array $input): Order
@@ -51,7 +53,15 @@ class OrderService
             }
 
             $shippingAddress = $this->shippingAddress($customer, $input);
-            $discount = 0;
+            $discountQuote = null;
+            if ($cart->discount_id) {
+                try {
+                    $discountQuote = $this->discounts->quote($cart, $customer, true);
+                } catch (DiscountException $exception) {
+                    throw new CheckoutException($exception->errorCode, $exception->getMessage(), 422);
+                }
+            }
+            $discount = $discountQuote['amount'] ?? 0;
             $shipping = $this->shipping->calculate($cart, $shippingAddress, $input['shipping_method_code'] ?? 'standard');
             $tax = 0;
             $order = Order::query()->create([
@@ -86,6 +96,16 @@ class OrderService
                     'total_amount' => $lineSubtotal, 'currency' => $variant->currency,
                 ]);
                 $this->reserve($variant->id, $item->quantity, $order);
+            }
+            if ($discountQuote) {
+                $discountQuote['discount']->redemptions()->create([
+                    'order_id' => $order->id,
+                    'customer_id' => $customer?->id,
+                    'code_snapshot' => $discountQuote['code'],
+                    'amount' => $discount,
+                    'currency' => $cart->currency,
+                ]);
+                $discountQuote['discount']->increment('used_count');
             }
             $cart->items()->delete();
             $cart->update(['status' => 'converted', 'converted_at' => now()]);

@@ -62,7 +62,7 @@ class PublicProductApiTest extends TestCase
 
     public function test_product_detail_returns_all_public_nested_data(): void
     {
-        [$product, $variant] = $this->createPublicProduct(['slug' => 'luna-dress'], [
+        [$product, $variant] = $this->createPublicProduct(['slug' => 'luna-dress', 'metadata' => ['material' => 'Linen blend']], [
             'sku' => 'NOU-LUNA-CRM-S', 'title' => 'Cream / S', 'price_amount' => 399000, 'compare_at_amount' => 449000,
         ], 10);
         $category = Category::factory()->create(['slug' => 'dresses']);
@@ -84,6 +84,8 @@ class PublicProductApiTest extends TestCase
             ->assertJsonPath('data.variants.0.selected_options.0.option_code', 'color')
             ->assertJsonPath('data.variants.0.selected_options.0.value_code', 'cream')
             ->assertJsonPath('data.variants.0.available', true)
+            ->assertJsonPath('data.variants.0.inventory_status', 'in_stock')
+            ->assertJsonPath('data.material', 'Linen blend')
             ->assertJsonCount(1, 'data.variants');
     }
 

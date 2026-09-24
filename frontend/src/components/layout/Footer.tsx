@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NewsletterForm } from "@/components/common/NewsletterForm";
 export function Footer() {
   return (
     <footer className="mt-24 bg-espresso text-ivory">
@@ -37,17 +38,9 @@ export function Footer() {
           <p className="mt-5 text-sm leading-6 text-ivory/65">
             Receive new collection stories and considered edits.
           </p>
-          <form className="mt-5 flex border-b border-ivory/40">
-            <input
-              type="email"
-              aria-label="Email address"
-              placeholder="Email address"
-              className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-ivory/40"
-            />
-            <button type="button" className="text-xs uppercase tracking-widest">
-              Join
-            </button>
-          </form>
+          <div className="mt-5">
+            <NewsletterForm source="footer" dark />
+          </div>
         </div>
       </div>
       <div className="border-t border-ivory/10 py-5 text-center text-[10px] uppercase tracking-[.2em] text-ivory/40">

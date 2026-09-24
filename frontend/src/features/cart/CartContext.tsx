@@ -9,9 +9,11 @@ import {
 } from "react";
 import {
   addCartItem,
+  applyCartDiscount,
   getCart,
   CartApiError,
   removeCartItem,
+  removeCartDiscount,
   updateCartItem,
 } from "./api";
 import type { Cart } from "./types";
@@ -27,6 +29,8 @@ type CartContextValue = {
   updateItem: (id: number, quantity: number) => Promise<void>;
   removeItem: (id: number) => Promise<void>;
   refresh: () => Promise<void>;
+  applyDiscount: (code: string) => Promise<void>;
+  removeDiscount: () => Promise<void>;
 };
 const CartContext = createContext<CartContextValue | null>(null);
 
@@ -100,6 +104,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await refresh();
       },
       refresh,
+      applyDiscount: (code: string) => mutate(() => applyCartDiscount(code)),
+      removeDiscount: () => mutate(() => removeCartDiscount()),
     }),
     [cart, loading, error, drawerOpen, mutate, refresh],
   );

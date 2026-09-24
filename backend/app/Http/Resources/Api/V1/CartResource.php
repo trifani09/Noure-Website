@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Discounts\DiscountException;
+use App\Discounts\DiscountService;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CartResource extends JsonResource
@@ -40,13 +44,25 @@ class CartResource extends JsonResource
             ];
         })->values();
         $subtotal = $items->sum('subtotal_amount');
+        $appliedDiscount = null;
+        try {
+            /** @var Customer|null $customer */
+            $customer = Auth::guard('customer')->user();
+            $quote = app(DiscountService::class)->quote($this->resource, $customer);
+            $appliedDiscount = ['code' => $quote['code'], 'name' => $quote['name'], 'amount' => $quote['amount']];
+        } catch (DiscountException) {
+            // An invalid or expired code is revalidated before order creation.
+        }
+        $discountAmount = $appliedDiscount['amount'] ?? 0;
 
         return [
             'public_id' => $this->public_id,
             'items' => $items,
             'item_count' => $items->sum('quantity'),
             'subtotal_amount' => $subtotal,
-            'total_amount' => $subtotal,
+            'discount_amount' => $discountAmount,
+            'total_amount' => $subtotal - $discountAmount,
+            'applied_discount' => $appliedDiscount,
             'currency' => $this->currency,
         ];
     }

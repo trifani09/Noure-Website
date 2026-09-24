@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { ProductGrid } from "@/components/products/ProductGrid";
+import { ShareProductButton } from "@/components/products/ShareProductButton";
 import { VariantSelector } from "@/components/products/VariantSelector";
 import { getProduct, getProducts, StorefrontApiError } from "@/services/api";
 export const dynamic = "force-dynamic";
@@ -91,7 +92,7 @@ export default async function ProductPage({ params }: Props) {
     { title: "Shipping information", body: item.shipping_information },
   ].filter((section) => section.body);
   return (
-    <div className="page-shell py-8 md:py-14">
+    <div className="page-shell pb-28 pt-8 md:py-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -178,12 +179,15 @@ export default async function ProductPage({ params }: Props) {
               )}
             </div>
           )}
-          <Link
-            href="/contact"
-            className="mt-6 inline-block text-xs text-muted underline underline-offset-4 hover:text-ink"
-          >
-            Need help with this piece?
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link
+              href="/contact"
+              className="text-xs text-muted underline underline-offset-4 hover:text-ink"
+            >
+              Need help with this piece?
+            </Link>
+            <ShareProductButton productName={item.name} />
+          </div>
         </div>
       </div>
       {relatedProducts.length > 0 && (

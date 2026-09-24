@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['customer_id', 'guest_token_hash', 'status', 'currency', 'email', 'expires_at', 'converted_at'])]
+#[Fillable(['customer_id', 'discount_id', 'guest_token_hash', 'status', 'currency', 'email', 'expires_at', 'converted_at'])]
 class Cart extends Model
 {
     /** @use HasFactory<CartFactory> */
@@ -25,6 +25,11 @@ class Cart extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class);
     }
 
     public function items(): HasMany

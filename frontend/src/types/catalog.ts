@@ -79,6 +79,7 @@ export type ProductVariant = {
   compare_at_amount: number | null;
   currency: string;
   available: boolean;
+  inventory_status: "in_stock" | "low_stock" | "out_of_stock";
   is_default: boolean;
 };
 export type ProductDetail = Omit<
