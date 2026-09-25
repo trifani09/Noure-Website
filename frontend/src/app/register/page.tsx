@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -9,6 +9,7 @@ import { AuthApiError } from "@/services/auth-api";
 export default function RegisterPage() {
   const { customer, loading: sessionLoading, register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
@@ -25,7 +26,8 @@ export default function RegisterPage() {
     ) as Record<string, string>;
     try {
       await register(data);
-      router.replace("/account");
+      const next = searchParams.get("next");
+      router.replace(next?.startsWith("/") && !next.startsWith("//") ? next : "/account");
     } catch (caught) {
       if (caught instanceof AuthApiError) {
         setMessage(caught.message);
@@ -82,6 +84,7 @@ export default function RegisterPage() {
             label="Email"
             name="email"
             type="email"
+            defaultValue={searchParams.get("email") ?? ""}
             autoComplete="email"
             required
             error={errors.email}

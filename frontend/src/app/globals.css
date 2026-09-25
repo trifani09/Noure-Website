@@ -69,6 +69,14 @@ img {
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
+.desktop-nav-item {
+  font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase;
+}
 .page-shell {
   width: min(100% - 2rem, 90rem);
   margin-inline: auto;

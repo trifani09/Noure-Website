@@ -13,6 +13,9 @@ const mainLinks: NavigationItem[] = [
   { href: "/products", label: "All product" },
 ];
 
+const desktopNavItemClass =
+  "desktop-nav-item focus-ring flex h-full items-center hover:text-plum";
+
 function SearchIcon() {
   return <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.5]"><circle cx="10.8" cy="10.8" r="7" /><path d="m16 16 5 5" /></svg>;
 }
@@ -46,10 +49,10 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
 
           <nav className="hidden h-full items-center gap-9 lg:flex" aria-label="Main navigation">
             {mainLinks.slice(0, 3).map((link) => (
-              <Link className="focus-ring flex h-full items-center text-[13px] uppercase tracking-[.02em] hover:text-plum" key={link.label} href={link.href}>{link.label}</Link>
+              <Link className={desktopNavItemClass} key={link.label} href={link.href}>{link.label}</Link>
             ))}
             <div className="group static flex h-full items-center">
-              <button className="focus-ring flex items-center gap-2 text-[13px] uppercase tracking-[.02em] hover:text-plum" type="button">
+              <button className={`${desktopNavItemClass} gap-2`} type="button">
                 Categories
                 <svg aria-hidden viewBox="0 0 12 8" className="h-2 w-3 fill-none stroke-current stroke-[1.4]"><path d="m1 1.5 5 5 5-5" /></svg>
               </button>
@@ -68,7 +71,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
                 </div>
               </div>
             </div>
-            <Link className="focus-ring flex h-full items-center text-[13px] uppercase tracking-[.02em] hover:text-plum" href="/products">All product</Link>
+            <Link className={desktopNavItemClass} href="/products">All product</Link>
           </nav>
 
           <Link href="/" aria-label="Noure home" className="focus-ring editorial-title absolute left-1/2 -translate-x-1/2 text-2xl tracking-[.18em]">NOURE</Link>

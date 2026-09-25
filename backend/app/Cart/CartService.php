@@ -33,6 +33,43 @@ class CartService
         return [$this->load($cart), $token];
     }
 
+    public function claimGuestCart(Customer $customer, ?string $guestToken): void
+    {
+        if (! $guestToken) {
+            return;
+        }
+
+        DB::transaction(function () use ($customer, $guestToken): void {
+            $guestCart = Cart::query()->where('guest_token_hash', hash('sha256', $guestToken))
+                ->where('status', 'active')->lockForUpdate()->first();
+            if (! $guestCart) {
+                return;
+            }
+
+            $customerCart = Cart::query()->where('customer_id', $customer->id)
+                ->where('status', 'active')->lockForUpdate()->first();
+            if (! $customerCart) {
+                $guestCart->update(['customer_id' => $customer->id, 'guest_token_hash' => null, 'expires_at' => now()->addDays(30)]);
+
+                return;
+            }
+
+            foreach ($guestCart->items()->get() as $guestItem) {
+                $customerItem = $customerCart->items()->where('variant_id', $guestItem->variant_id)->first();
+                if ($customerItem) {
+                    $customerItem->update(['quantity' => $customerItem->quantity + $guestItem->quantity]);
+                    $guestItem->delete();
+                } else {
+                    $guestItem->update(['cart_id' => $customerCart->id]);
+                }
+            }
+            if (! $customerCart->discount_id && $guestCart->discount_id) {
+                $customerCart->update(['discount_id' => $guestCart->discount_id]);
+            }
+            $guestCart->update(['status' => 'converted', 'converted_at' => now()]);
+        });
+    }
+
     public function add(Cart $cart, string $variantPublicId, int $quantity): Cart
     {
         return DB::transaction(function () use ($cart, $variantPublicId, $quantity): Cart {

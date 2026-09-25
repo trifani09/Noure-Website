@@ -50,8 +50,10 @@ export function CheckoutForm() {
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setPending(true); setError(null);
     try {
+      const wasGuest = !checkout!.customer;
       const order = await placeOrder({ ...(checkout!.customer ? {} : customer), ...(selectedAddress ? { address_public_id: selectedAddress } : { shipping_address: address }), shipping_method_code: selectedShipping });
       sessionStorage.setItem("noure:last-order", JSON.stringify(order));
+      sessionStorage.setItem("noure:last-order-was-guest", String(wasGuest));
       router.push(`/payment/${order.public_id}`);
     } catch (caught) {
       if (caught instanceof CheckoutApiError && caught.status === 401) setError("Your session expired. Please sign in again or continue as a guest.");

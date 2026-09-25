@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Cart\CartService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CustomerLoginRequest;
 use App\Http\Requests\Api\V1\RegisterCustomerRequest;
@@ -13,8 +14,11 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerAuthController extends Controller
 {
+    public function __construct(private readonly CartService $carts) {}
+
     public function register(RegisterCustomerRequest $request): JsonResponse
     {
+        $guestCartToken = $request->cookie('noure_cart');
         $customer = Customer::query()->create([
             ...$request->safe()->only(['first_name', 'last_name', 'email', 'phone', 'password']),
             'status' => 'active',
@@ -22,12 +26,14 @@ class CustomerAuthController extends Controller
 
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
+        $this->carts->claimGuestCart($customer, $guestCartToken);
 
         return $this->customerResponse($request, $customer, 201);
     }
 
     public function login(CustomerLoginRequest $request): JsonResponse
     {
+        $guestCartToken = $request->cookie('noure_cart');
         $credentials = [
             'email' => $request->validated('email'),
             'password' => $request->validated('password'),
@@ -39,6 +45,7 @@ class CustomerAuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $this->carts->claimGuestCart(Auth::guard('customer')->user(), $guestCartToken);
 
         return $this->customerResponse($request, Auth::guard('customer')->user());
     }

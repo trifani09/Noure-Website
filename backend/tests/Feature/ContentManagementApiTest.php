@@ -68,7 +68,8 @@ class ContentManagementApiTest extends TestCase
 
         $this->getJson('/api/v1/homepage')->assertOk()->assertJsonCount(1, 'data.sections')
             ->assertJsonPath('data.sections.0.products.0.public_id', $product->public_id)
-            ->assertJsonPath('data.sections.0.products.0.available', true)->assertJsonCount(1, 'data.sections.0.categories')
+            ->assertJsonPath('data.sections.0.products.0.available', true)
+            ->assertJsonPath('data.sections.0.products.0.colors', [])->assertJsonCount(1, 'data.sections.0.categories')
             ->assertJsonMissing(['name' => 'Hidden section']);
     }
 

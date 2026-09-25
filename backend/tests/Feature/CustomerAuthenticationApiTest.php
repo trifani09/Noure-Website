@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Customer;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -56,6 +60,22 @@ class CustomerAuthenticationApiTest extends TestCase
         $this->postJson('/api/v1/auth/login', ['email' => ' ALYA@example.com ', 'password' => 'StrongPass1', 'remember' => true])
             ->assertOk()->assertJsonPath('data.public_id', $customer->public_id);
         $this->assertAuthenticatedAs($customer, 'customer');
+    }
+
+    public function test_login_claims_the_active_guest_cart(): void
+    {
+        $token = 'guest-cart-token';
+        $cart = Cart::factory()->create(['guest_token_hash' => hash('sha256', $token)]);
+        $variant = ProductVariant::factory()->for(Product::factory())->create();
+        CartItem::factory()->for($cart)->for($variant, 'variant')->create(['quantity' => 2]);
+        $customer = Customer::factory()->create(['email' => 'alya@example.com', 'password' => 'StrongPass1']);
+
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()
+            ->postJson('/api/v1/auth/login', ['email' => 'alya@example.com', 'password' => 'StrongPass1'])
+            ->assertOk();
+
+        $this->assertDatabaseHas('carts', ['id' => $cart->id, 'customer_id' => $customer->id, 'guest_token_hash' => null]);
+        $this->assertDatabaseHas('cart_items', ['cart_id' => $cart->id, 'variant_id' => $variant->id, 'quantity' => 2]);
     }
 
     public function test_wrong_password_is_rejected(): void

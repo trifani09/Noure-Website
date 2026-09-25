@@ -20,7 +20,8 @@ class HomepageController extends Controller
             'categories' => fn ($query) => $query->where('is_active', true)->orderBy('homepage_section_categories.sort_order'),
             'products' => fn ($query) => $query->publiclyVisible()->orderBy('homepage_section_products.sort_order')->with([
                 'images' => fn ($images) => $images->whereNull('variant_id')->orderByDesc('is_primary')->orderBy('sort_order'),
-                'variants' => fn ($variants) => $variants->where('is_active', true)->with('inventoryLevels.location'),
+                'categories' => fn ($categories) => $categories->publiclyVisible()->orderByDesc('product_categories.is_primary')->orderBy('product_categories.sort_order'),
+                'variants' => fn ($variants) => $variants->where('is_active', true)->with(['inventoryLevels.location', 'optionValues.option']),
             ]),
         ])->get();
 
@@ -48,12 +49,27 @@ class HomepageController extends Controller
     private function product(object $product): array
     {
         $variant = $product->variants->firstWhere('is_default', true) ?? $product->variants->sortBy('price_amount')->first();
-        $image = $product->images->first();
+        $primaryImage = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
+        $secondaryImage = $product->images->first(fn ($image) => $primaryImage === null || $image->id !== $primaryImage->id);
+        $primaryCategory = $product->categories->first(fn ($category) => (bool) $category->pivot->is_primary)
+            ?? $product->categories->first();
         $available = $product->variants->contains(fn ($item) => $item->inventoryLevels->contains(fn ($level) => $level->location?->is_active && $level->on_hand - $level->reserved - $level->safety_stock > 0));
+        $colors = $product->variants->flatMap->optionValues
+            ->filter(fn ($value) => $value->option?->code === 'color')
+            ->unique('code')->sortBy('sort_order')
+            ->map(fn ($value) => ['code' => $value->code, 'label' => $value->label, 'swatch_value' => $value->swatch_value])
+            ->values();
 
         return ['public_id' => $product->public_id, 'name' => $product->name, 'slug' => $product->slug, 'short_description' => $product->short_description,
-            'primary_image' => $image ? ['url' => Storage::disk('public')->url($image->path), 'alt_text' => $image->alt_text] : null,
+            'primary_image' => $primaryImage ? ['url' => Storage::disk('public')->url($primaryImage->path), 'alt_text' => $primaryImage->alt_text] : null,
+            'secondary_image' => $secondaryImage ? ['url' => Storage::disk('public')->url($secondaryImage->path), 'alt_text' => $secondaryImage->alt_text] : null,
+            'primary_category' => $primaryCategory ? ['public_id' => $primaryCategory->public_id, 'name' => $primaryCategory->name, 'slug' => $primaryCategory->slug] : null,
             'price' => $variant ? ['price_amount' => $variant->price_amount, 'compare_at_amount' => $variant->compare_at_amount, 'currency' => $variant->currency] : null,
-            'available' => $available];
+            'available' => $available,
+            'is_new' => $product->published_at?->greaterThanOrEqualTo(now()->subDays(30)) ?? false,
+            'is_best_seller' => false,
+            'colors' => $colors,
+            'quick_add_variant_id' => $product->variants->count() === 1 && $available ? $product->variants->first()->public_id : null,
+            'published_at' => $product->published_at?->utc()->toISOString()];
     }
 }

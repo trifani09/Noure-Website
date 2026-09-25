@@ -22,6 +22,9 @@ export function ProductCard({
       )
     : 0;
   const productHref = `/product/${product.slug}`;
+  // Older/partial storefront payloads may omit colors. Treat that the same as
+  // a product without color options so one bad card cannot crash the page.
+  const colors = Array.isArray(product.colors) ? product.colors : [];
 
   return (
     <article className="group min-w-0">
@@ -108,9 +111,9 @@ export function ProductCard({
             </span>
           )}
         </div>
-        {product.colors.length > 0 && (
-          <div className="mt-3 flex items-center gap-1.5" aria-label={`${product.colors.length} colors available`}>
-            {product.colors.slice(0, 5).map((color) => (
+        {colors.length > 0 && (
+          <div className="mt-3 flex items-center gap-1.5" aria-label={`${colors.length} colors available`}>
+            {colors.slice(0, 5).map((color) => (
               <span
                 key={color.code}
                 title={color.label}
@@ -118,9 +121,9 @@ export function ProductCard({
                 style={color.swatch_value ? { backgroundColor: color.swatch_value } : undefined}
               />
             ))}
-            {product.colors.length > 5 && (
+            {colors.length > 5 && (
               <span className="ml-0.5 text-[10px] text-muted">
-                +{product.colors.length - 5}
+                +{colors.length - 5}
               </span>
             )}
           </div>
