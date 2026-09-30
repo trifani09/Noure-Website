@@ -3,12 +3,16 @@
 use App\Http\Controllers\Api\V1\Admin\AuthController;
 use App\Http\Controllers\Api\V1\Admin\BannerController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\DiscountController;
 use App\Http\Controllers\Api\V1\Admin\HomepageSectionController;
 use App\Http\Controllers\Api\V1\Admin\OrderController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\ProductImageController;
 use App\Http\Controllers\Api\V1\Admin\ProductImportController;
 use App\Http\Controllers\Api\V1\Admin\ProductVariantController;
+use App\Http\Controllers\Api\V1\Admin\StoreSettingController;
 use App\Http\Controllers\Api\V1\Admin\VariantInventoryController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CheckoutController;
@@ -70,6 +74,13 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->name('api.v1.admin.')->group(function (): void {
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+        Route::get('customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
+        Route::put('customers/{customer}/status', [AdminCustomerController::class, 'updateStatus'])->name('customers.status.update');
+        Route::apiResource('discounts', DiscountController::class);
+        Route::get('settings', [StoreSettingController::class, 'show'])->name('settings.show');
+        Route::put('settings', [StoreSettingController::class, 'update'])->name('settings.update');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order_public_id}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{order_public_id}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');

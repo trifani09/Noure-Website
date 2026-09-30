@@ -1,16 +1,14 @@
-import { useAuth } from '../auth/useAuth'
+import { useEffect, useState } from 'react'
+import { ApiError } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
-
+import { getDashboard } from '../operations/operationsService'
+import type { Dashboard } from '../operations/types'
 export function DashboardPage() {
-  const { admin } = useAuth()
-
-  return (
-    <section className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-      <PageHeader title="Dashboard" description="Your Noure administration workspace." />
-      <div className="mt-8">
-        <p className="text-lg font-medium text-stone-900">Welcome, {admin?.name}.</p>
-        <p className="mt-2 text-sm leading-6 text-stone-600">Use the navigation to access Noure administration modules as they become available.</p>
-      </div>
-    </section>
-  )
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null); const [error, setError] = useState<string | null>(null)
+  useEffect(() => { getDashboard().then((response) => setDashboard(response.data)).catch((caught) => setError(caught instanceof ApiError ? caught.message : 'Dashboard could not be loaded.')) }, [])
+  if (error) return <div className="space-y-6"><PageHeader title="Dashboard" description="Store performance and operational alerts." /><div className="rounded-xl bg-red-50 p-6 text-red-700">{error}</div></div>
+  if (!dashboard) return <div className="space-y-6"><PageHeader title="Dashboard" description="Store performance and operational alerts." /><div className="rounded-xl border bg-white p-12 text-center text-sm text-stone-500">Loading dashboard…</div></div>
+  const money = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: dashboard.currency, maximumFractionDigits: 0 }).format(amount)
+  const cards = [['Sales today', money(dashboard.sales.today)], ['Sales this month', money(dashboard.sales.month)], ['Pending payment', dashboard.pending_payment], ['New customers this month', dashboard.new_customers.month], ['Low stock', dashboard.inventory.low_stock], ['Out of stock', dashboard.inventory.out_of_stock]]
+  return <div className="space-y-6"><PageHeader title="Dashboard" description="Store performance and operational alerts." /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map(([label, value]) => <section key={label} className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></section>)}</div><div className="grid gap-6 xl:grid-cols-2"><section className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="font-semibold">Orders by status</h2><div className="mt-4 grid grid-cols-2 gap-3">{Object.entries(dashboard.orders_by_status).map(([status, count]) => <div key={status} className="rounded-lg bg-stone-50 p-3"><p className="text-xs uppercase text-stone-500">{status}</p><p className="mt-1 text-xl font-semibold">{count}</p></div>)}{Object.keys(dashboard.orders_by_status).length === 0 && <p className="text-sm text-stone-500">No orders yet.</p>}</div></section><section className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="font-semibold">Best-selling products</h2><div className="mt-4 divide-y">{dashboard.best_sellers.map((item) => <div key={`${item.product_name}-${item.sku}`} className="flex justify-between gap-4 py-3 text-sm"><div><p className="font-medium">{item.product_name}</p><p className="text-xs text-stone-500">{item.sku}</p></div><div className="text-right"><p>{item.quantity_sold} sold</p><p className="text-xs text-stone-500">{money(item.revenue)}</p></div></div>)}{dashboard.best_sellers.length === 0 && <p className="py-4 text-sm text-stone-500">No paid sales yet.</p>}</div></section></div><section className="rounded-xl border bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><h2 className="font-semibold">Recent inventory activity</h2><span className="text-xs text-stone-500">Low-stock threshold: {dashboard.inventory.threshold}</span></div><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="text-xs uppercase text-stone-500"><tr><th className="pb-2">Product</th><th>SKU</th><th>Location</th><th>Type</th><th>Change</th><th>Time</th></tr></thead><tbody className="divide-y">{dashboard.recent_inventory_movements.map((movement) => <tr key={movement.id}><td className="py-3"><p className="font-medium">{movement.product}</p><p className="text-xs text-stone-500">{movement.variant}</p></td><td>{movement.sku}</td><td>{movement.location}</td><td>{movement.movement_type}</td><td className={movement.quantity_delta >= 0 ? 'text-emerald-700' : 'text-red-700'}>{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</td><td>{new Date(movement.created_at).toLocaleString('id-ID')}</td></tr>)}</tbody></table>{dashboard.recent_inventory_movements.length === 0 && <p className="py-8 text-center text-sm text-stone-500">No inventory activity yet.</p>}</div></section></div>
 }

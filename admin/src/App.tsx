@@ -4,6 +4,9 @@ import { LoadingScreen } from './components/LoadingScreen'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { findAdminRoute } from './config/navigation'
 import { DashboardPage } from './pages/DashboardPage'
+import { CustomersPage } from './pages/CustomersPage'
+import { DiscountsPage } from './pages/DiscountsPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { CategoriesPage } from './pages/CategoriesPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -33,7 +36,7 @@ function App() {
   const route = findAdminRoute(pathname)
 
   const publicId = pathname.split('/')[2] ?? ''
-  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : route.page === 'products' ? <ProductsPage /> : route.page === 'product-create' ? <ProductCreatePage /> : route.page === 'product-detail' ? <ProductDetailPage publicId={publicId} /> : route.page === 'product-edit' ? <ProductEditPage publicId={publicId} /> : route.page === 'product-variants' ? <ProductVariantsPage publicId={publicId} /> : route.page === 'product-media' ? <ProductMediaPage publicId={publicId} /> : route.page === 'product-import' ? <ProductImportPage /> : route.page === 'inventory' ? <InventoryPage /> : route.page === 'inventory-detail' ? <InventoryDetailPage variantId={publicId} /> : route.page === 'orders' ? <OrdersPage /> : route.page === 'order-detail' ? <OrderDetailPage publicId={publicId} /> : route.page === 'content-banners' ? <ContentBannersPage /> : <PlaceholderPage route={route} />
+  const content = !route ? <NotFoundPage /> : route.page === 'dashboard' ? <DashboardPage /> : route.page === 'categories' ? <CategoriesPage /> : route.page === 'products' ? <ProductsPage /> : route.page === 'product-create' ? <ProductCreatePage /> : route.page === 'product-detail' ? <ProductDetailPage publicId={publicId} /> : route.page === 'product-edit' ? <ProductEditPage publicId={publicId} /> : route.page === 'product-variants' ? <ProductVariantsPage publicId={publicId} /> : route.page === 'product-media' ? <ProductMediaPage publicId={publicId} /> : route.page === 'product-import' ? <ProductImportPage /> : route.page === 'inventory' ? <InventoryPage /> : route.page === 'inventory-detail' ? <InventoryDetailPage variantId={publicId} /> : route.page === 'orders' ? <OrdersPage /> : route.page === 'order-detail' ? <OrderDetailPage publicId={publicId} /> : route.page === 'customers' ? <CustomersPage /> : route.page === 'discounts' ? <DiscountsPage /> : route.page === 'settings' ? <SettingsPage /> : route.page === 'content-banners' ? <ContentBannersPage /> : <PlaceholderPage route={route} />
 
   return (
     <ProtectedRoute>

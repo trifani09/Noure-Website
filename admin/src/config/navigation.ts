@@ -4,7 +4,7 @@ export type AdminRoute = {
   shortLabel: string
   description: string
   implemented: boolean
-  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'orders' | 'order-detail' | 'content-banners' | 'placeholder'
+  page: 'dashboard' | 'categories' | 'products' | 'product-create' | 'product-detail' | 'product-edit' | 'product-variants' | 'product-media' | 'product-import' | 'inventory' | 'inventory-detail' | 'orders' | 'order-detail' | 'customers' | 'discounts' | 'content-banners' | 'settings' | 'placeholder'
 }
 
 export const adminRoutes: AdminRoute[] = [
@@ -14,10 +14,10 @@ export const adminRoutes: AdminRoute[] = [
   { path: '/inventory', label: 'Inventory', shortLabel: 'IN', description: 'Review variant stock and record adjustments.', implemented: true, page: 'inventory' },
   { path: '/import/products', label: 'Product import', shortLabel: 'PI', description: 'Validate and import products in bulk.', implemented: true, page: 'product-import' },
   { path: '/orders', label: 'Orders', shortLabel: 'OR', description: 'Review and manage customer orders.', implemented: true, page: 'orders' },
-  { path: '/customers', label: 'Customers', shortLabel: 'CU', description: 'Customer management will be available in a future phase.', implemented: false, page: 'placeholder' },
-  { path: '/discounts', label: 'Discounts', shortLabel: 'DI', description: 'Discount management will be available in a future phase.', implemented: false, page: 'placeholder' },
+  { path: '/customers', label: 'Customers', shortLabel: 'CU', description: 'Review customer activity and account access.', implemented: true, page: 'customers' },
+  { path: '/discounts', label: 'Discounts', shortLabel: 'DI', description: 'Manage voucher codes, limits, and schedules.', implemented: true, page: 'discounts' },
   { path: '/content', label: 'Content', shortLabel: 'CO', description: 'Manage storefront homepage and marketing content.', implemented: true, page: 'content-banners' },
-  { path: '/settings', label: 'Settings', shortLabel: 'SE', description: 'Settings will be available in a future phase.', implemented: false, page: 'placeholder' },
+  { path: '/settings', label: 'Settings', shortLabel: 'SE', description: 'Manage store identity and operational defaults.', implemented: true, page: 'settings' },
 ]
 
 export function findAdminRoute(pathname: string): AdminRoute | undefined {
