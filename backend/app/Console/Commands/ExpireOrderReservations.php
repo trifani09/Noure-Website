@@ -28,7 +28,7 @@ class ExpireOrderReservations extends Command
         $failed = 0;
         $cutoff = now()->subMinutes(config('orders.reservation_minutes'));
         Order::query()->whereIn('status', ['pending', 'processing'])->whereIn('payment_status', ['unpaid', 'pending', 'authorized'])
-            ->where('created_at', '<=', $cutoff)->orderBy('id')->chunkById((int) $this->option('chunk'), function ($orders) use (&$expired, &$failed): void {
+            ->where('placed_at', '<=', $cutoff)->orderBy('id')->chunkById((int) $this->option('chunk'), function ($orders) use (&$expired, &$failed): void {
                 foreach ($orders as $candidate) {
                     try {
                         $notification = DB::transaction(function () use ($candidate): ?array {

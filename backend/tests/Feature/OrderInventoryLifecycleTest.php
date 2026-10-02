@@ -65,7 +65,7 @@ class OrderInventoryLifecycleTest extends TestCase
 
     public function test_expiry_command_releases_reservation_and_is_idempotent(): void
     {
-        $this->order->update(['created_at' => now()->subHour()]);
+        $this->order->update(['placed_at' => now()->subHour()]);
         $payment = Payment::factory()->for($this->order)->create(['status' => 'pending', 'amount' => $this->order->grand_total_amount, 'currency' => $this->order->currency]);
         $this->artisan('orders:expire-reservations')->assertSuccessful();
         $this->artisan('orders:expire-reservations')->assertSuccessful();

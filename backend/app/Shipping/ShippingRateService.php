@@ -3,11 +3,19 @@
 namespace App\Shipping;
 
 use App\Models\Cart;
-use App\Models\ProductVariant;
 
 class ShippingRateService
 {
-    public function __construct(private readonly RuleBasedShippingProvider $provider) {}
+    private readonly ShippingProviderInterface $provider;
+
+    public function __construct(RuleBasedShippingProvider $fallback, BiteshipShippingProvider $biteship)
+    {
+        $this->provider = config('shipping.provider') === 'biteship'
+            && filled(config('shipping.biteship.token'))
+            && filled(config('shipping.biteship.origin_postal_code'))
+            ? $biteship
+            : $fallback;
+    }
 
     /** @return array<int, array<string, mixed>> */
     public function availableMethods(Cart $cart, array $destination): array

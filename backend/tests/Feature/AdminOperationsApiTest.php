@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\StoreSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -40,6 +41,23 @@ class AdminOperationsApiTest extends TestCase
         Order::factory()->create(['payment_status' => 'pending', 'status' => 'pending']);
 
         $this->actingAs($this->admin)->getJson('/api/v1/admin/dashboard')->assertOk()->assertJsonPath('data.sales.today', 325000)->assertJsonPath('data.pending_payment', 1)->assertJsonPath('data.orders_by_status.processing', 1)->assertJsonPath('data.new_customers.today', 1);
+    }
+
+    public function test_storefront_settings_are_public_and_exclude_internal_values(): void
+    {
+        StoreSetting::query()->create([
+            'store_name' => 'Noure Indonesia',
+            'support_email' => 'hello@noure.test',
+            'default_currency' => 'IDR',
+            'low_stock_threshold' => 8,
+            'order_prefix' => 'NOU',
+        ]);
+
+        $this->getJson('/api/v1/storefront/settings')->assertOk()
+            ->assertJsonPath('data.store_name', 'Noure Indonesia')
+            ->assertJsonPath('data.support_email', 'hello@noure.test')
+            ->assertJsonMissingPath('data.low_stock_threshold')
+            ->assertJsonMissingPath('data.order_prefix');
     }
 
     public function test_admin_operations_require_authentication(): void

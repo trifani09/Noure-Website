@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\NewsletterSubscriptionController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PublicCategoryController;
 use App\Http\Controllers\Api\V1\PublicProductController;
+use App\Http\Controllers\Api\V1\StorefrontSettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -34,6 +35,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('products/filters', [PublicProductController::class, 'filters'])->name('api.v1.products.filters');
     Route::get('products/{slug}', [PublicProductController::class, 'show'])->name('api.v1.products.show');
     Route::get('homepage', HomepageController::class)->name('api.v1.homepage');
+    Route::get('storefront/settings', StorefrontSettingController::class)->name('api.v1.storefront.settings');
     Route::post('newsletter/subscriptions', NewsletterSubscriptionController::class)->middleware('throttle:5,1')->name('api.v1.newsletter.subscriptions.store');
     Route::get('cart', [CartController::class, 'show'])->name('api.v1.cart.show');
     Route::post('cart/items', [CartController::class, 'store'])->name('api.v1.cart.items.store');
@@ -51,6 +53,8 @@ Route::prefix('v1')->group(function (): void {
     Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
         Route::post('register', [CustomerAuthController::class, 'register'])->name('register');
         Route::post('login', [CustomerAuthController::class, 'login'])->name('login');
+        Route::post('forgot-password', [CustomerAuthController::class, 'forgotPassword'])->middleware('throttle:5,1')->name('password.email');
+        Route::post('reset-password', [CustomerAuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
         Route::middleware('auth:customer')->group(function (): void {
             Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
             Route::get('me', [CustomerAuthController::class, 'me'])->name('me');

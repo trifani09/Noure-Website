@@ -49,6 +49,8 @@ php artisan key:generate
 
 Create the `noure` MySQL database, update the `DB_*` values in `backend/.env`, then run:
 
+Set `FRONTEND_URL` in `backend/.env` to the public site's origin so customer password reset emails link back to the correct application.
+
 ```bash
 php artisan migrate
 php artisan serve

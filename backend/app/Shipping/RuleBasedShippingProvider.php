@@ -6,7 +6,7 @@ use App\Checkout\CheckoutException;
 use App\Models\Cart;
 use Illuminate\Support\Str;
 
-class RuleBasedShippingProvider
+class RuleBasedShippingProvider implements ShippingProviderInterface
 {
     /** @return array<int, array<string, mixed>> */
     public function availableMethods(Cart $cart, array $destination): array

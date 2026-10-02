@@ -9,6 +9,8 @@ use App\Models\InventoryLocation;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -60,6 +62,54 @@ class ShippingApiTest extends TestCase
             ->assertCreated()->assertJsonPath('data.shipping_amount', 50000)->assertJsonPath('data.grand_total_amount', 200000)
             ->assertJsonPath('data.shipping_method.code', 'express');
         $this->assertDatabaseHas('orders', ['order_number' => $response->json('data.order_number'), 'shipping_amount' => 50000, 'grand_total_amount' => 200000]);
+    }
+
+    public function test_biteship_quotes_are_mapped_and_use_server_side_cart_data(): void
+    {
+        config([
+            'shipping.provider' => 'biteship',
+            'shipping.biteship.base_url' => 'https://api.biteship.test',
+            'shipping.biteship.token' => 'test-token',
+            'shipping.biteship.origin_postal_code' => '12345',
+            'shipping.biteship.couriers' => 'jne,sicepat',
+        ]);
+        Http::fake([
+            'https://api.biteship.test/v1/rates/couriers' => Http::response(['pricing' => [[
+                'courier_code' => 'jne',
+                'courier_service_code' => 'reg',
+                'courier_name' => 'JNE',
+                'courier_service_name' => 'Regular',
+                'description' => 'Regular service',
+                'price' => 24000,
+                'duration' => '2-3 days',
+            ]]], 200),
+        ]);
+        [$token] = $this->cart(2);
+
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()
+            ->getJson('/api/v1/checkout/shipping-methods?country_code=ID&city=Bandung&province=Jawa%20Barat&postal_code=40123')
+            ->assertOk()->assertJsonPath('data.0.code', 'jne:reg')->assertJsonPath('data.0.amount', 24000)
+            ->assertJsonPath('data.0.weight_grams', 2400);
+
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.biteship.test/v1/rates/couriers'
+            && $request->hasHeader('Authorization', 'test-token')
+            && $request['origin_postal_code'] === 12345
+            && $request['destination_postal_code'] === 40123
+            && $request['items'][0]['quantity'] === 2);
+    }
+
+    public function test_biteship_uses_rule_fallback_when_origin_postal_code_is_not_configured(): void
+    {
+        config([
+            'shipping.provider' => 'biteship',
+            'shipping.biteship.token' => 'test-token',
+            'shipping.biteship.origin_postal_code' => null,
+        ]);
+        [$token] = $this->cart(1);
+
+        $this->withUnencryptedCookie('noure_cart', $token)->withCredentials()
+            ->getJson('/api/v1/checkout/shipping-methods?country_code=ID&city=Jakarta&province=DKI%20Jakarta')
+            ->assertOk()->assertJsonPath('data.0.code', 'standard');
     }
 
     private function cart(int $quantity): array

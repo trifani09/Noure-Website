@@ -8,8 +8,11 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Tests\TestCase;
 
 class CustomerAuthenticationApiTest extends TestCase
@@ -83,6 +86,34 @@ class CustomerAuthenticationApiTest extends TestCase
         Customer::factory()->create(['email' => 'alya@example.com', 'password' => 'StrongPass1']);
         $this->postJson('/api/v1/auth/login', ['email' => 'alya@example.com', 'password' => 'WrongPass1'])
             ->assertUnauthorized()->assertJsonPath('meta.errors.0.code', 'unauthenticated');
+    }
+
+    public function test_customer_can_request_a_password_reset_without_disclosing_unknown_emails(): void
+    {
+        Notification::fake();
+        $customer = Customer::factory()->create(['email' => 'alya@example.com']);
+
+        $this->postJson('/api/v1/auth/forgot-password', ['email' => 'alya@example.com'])
+            ->assertOk()->assertJsonPath('message', 'If the account exists, a password reset link has been sent.');
+        Notification::assertSentTo($customer, ResetPassword::class);
+
+        $this->postJson('/api/v1/auth/forgot-password', ['email' => 'unknown@example.com'])
+            ->assertOk()->assertJsonPath('message', 'If the account exists, a password reset link has been sent.');
+    }
+
+    public function test_customer_can_reset_password_with_a_valid_token(): void
+    {
+        $customer = Customer::factory()->create(['email' => 'alya@example.com', 'password' => 'OldPass1']);
+        $token = Password::broker('customers')->createToken($customer);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $customer->email,
+            'token' => $token,
+            'password' => 'NewStrongPass1',
+            'password_confirmation' => 'NewStrongPass1',
+        ])->assertOk()->assertJsonPath('message', 'Your password has been reset successfully.');
+
+        $this->assertTrue(Hash::check('NewStrongPass1', $customer->refresh()->password));
     }
 
     public function test_authenticated_customer_can_fetch_me_and_profile(): void

@@ -77,6 +77,27 @@ export async function loginCustomer(input: {
   ).data;
 }
 
+export async function requestCustomerPasswordReset(email: string) {
+  await csrf();
+  return request<null>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetCustomerPassword(input: {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}) {
+  await csrf();
+  return request<null>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export async function registerCustomer(input: Record<string, string>) {
   await csrf();
   return (

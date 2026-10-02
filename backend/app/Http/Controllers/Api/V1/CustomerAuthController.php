@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Api\V1;
 use App\Cart\CartService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CustomerLoginRequest;
+use App\Http\Requests\Api\V1\ForgotCustomerPasswordRequest;
 use App\Http\Requests\Api\V1\RegisterCustomerRequest;
+use App\Http\Requests\Api\V1\ResetCustomerPasswordRequest;
 use App\Http\Resources\Api\V1\CustomerResource;
 use App\Models\Customer;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 
 class CustomerAuthController extends Controller
 {
@@ -48,6 +52,42 @@ class CustomerAuthController extends Controller
         $this->carts->claimGuestCart(Auth::guard('customer')->user(), $guestCartToken);
 
         return $this->customerResponse($request, Auth::guard('customer')->user());
+    }
+
+    public function forgotPassword(ForgotCustomerPasswordRequest $request): JsonResponse
+    {
+        Password::broker('customers')->sendResetLink($request->validated());
+
+        return response()->json([
+            'data' => null,
+            'meta' => (object) [],
+            'message' => 'If the account exists, a password reset link has been sent.',
+        ]);
+    }
+
+    public function resetPassword(ResetCustomerPasswordRequest $request): JsonResponse
+    {
+        $status = Password::broker('customers')->reset($request->validated(), function (Customer $customer, string $password): void {
+            $customer->forceFill(['password' => $password])->save();
+            event(new PasswordReset($customer));
+        });
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'data' => null,
+                'meta' => ['errors' => [[
+                    'code' => 'invalid_reset_token',
+                    'message' => 'This password reset link is invalid or has expired.',
+                ]]],
+                'message' => 'Unable to reset the password.',
+            ], 422);
+        }
+
+        return response()->json([
+            'data' => null,
+            'meta' => (object) [],
+            'message' => 'Your password has been reset successfully.',
+        ]);
     }
 
     public function me(Request $request): JsonResponse

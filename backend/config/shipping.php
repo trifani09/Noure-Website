@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'provider' => env('SHIPPING_PROVIDER', 'rules'),
+    'biteship' => [
+        'base_url' => env('BITESHIP_BASE_URL', 'https://api.biteship.com'),
+        'token' => env('BITESHIP_TOKEN'),
+        'origin_postal_code' => env('BITESHIP_ORIGIN_POSTAL_CODE'),
+        'couriers' => env('BITESHIP_COURIERS', 'jne,sicepat,jnt,anteraja'),
+    ],
     'currency' => 'IDR',
     'free_shipping_min_order' => env('FREE_SHIPPING_MIN_ORDER', 500000),
     'weight_step_grams' => 1000,
