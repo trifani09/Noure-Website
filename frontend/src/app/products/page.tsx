@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { CategoryTabs } from "@/components/products/CategoryTabs";
 import { FilterSidebar } from "@/components/products/FilterSidebar";
 import { Pagination } from "@/components/products/Pagination";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -44,7 +45,7 @@ export default async function ProductsPage({
     color: one(raw.color),
     size: one(raw.size),
     discounted: one(raw.discounted),
-    sort: one(raw.sort) ?? "newest",
+    sort: one(raw.sort) ?? "best_selling",
     page: one(raw.page) ?? "1",
   };
   const [{ data: products, pagination }, { data: categories }, filters] =
@@ -76,6 +77,8 @@ export default async function ProductsPage({
     ? `/products?sort=${encodeURIComponent(requestedSort)}`
     : "/products";
   return (
+    <>
+    <CategoryTabs categories={categories} activeSlug={values.category} />
     <div className="page-shell py-8 md:py-14">
       <Breadcrumb items={[{ label: "Shop" }]} />
       <div className="mt-10 flex flex-wrap items-end justify-between gap-6 border-b border-line pb-9">
@@ -107,5 +110,6 @@ export default async function ProductsPage({
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\InventoryLevel;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\StoreSetting;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -143,6 +144,7 @@ class PublicProductQuery
             ->selectSub($this->priceSubquery('min'), 'minimum_price_amount')
             ->selectSub($this->priceSubquery('max'), 'maximum_price_amount')
             ->selectSub($this->soldQuantitySubquery(), 'sold_quantity')
+            ->selectSub(StoreSetting::query()->select('low_stock_threshold')->limit(1), 'public_low_stock_threshold')
             ->selectRaw('EXISTS('.$this->availableVariantSubquery()->toSql().') as public_available', $this->availableVariantSubquery()->getBindings());
     }
 
@@ -159,7 +161,10 @@ class PublicProductQuery
                 ->orderBy('sort_order'),
             'variants' => fn ($variants) => $variants
                 ->where('is_active', true)
-                ->with(['optionValues.option'])
+                ->with([
+                    'optionValues.option',
+                    'inventoryLevels' => fn ($levels) => $levels->whereHas('location', fn ($location) => $location->where('is_active', true)),
+                ])
                 ->orderByDesc('is_default')
                 ->orderBy('id'),
         ];

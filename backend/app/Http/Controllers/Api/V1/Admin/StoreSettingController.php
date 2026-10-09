@@ -29,6 +29,6 @@ class StoreSettingController extends Controller
 
     private function response(StoreSetting $settings): JsonResponse
     {
-        return response()->json(['data' => $settings->only(['store_name', 'support_email', 'support_phone', 'whatsapp_number', 'instagram_url', 'default_currency', 'timezone', 'low_stock_threshold', 'order_prefix']), 'meta' => (object) [], 'message' => null]);
+        return response()->json(['data' => $settings->only(['store_name', 'announcement_text', 'announcement_url', 'announcement_is_active', 'support_email', 'support_phone', 'whatsapp_number', 'instagram_url', 'default_currency', 'timezone', 'low_stock_threshold', 'order_prefix']), 'meta' => (object) [], 'message' => null]);
     }
 }

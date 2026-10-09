@@ -13,7 +13,7 @@ class StorefrontSettingController extends Controller
         $settings = StoreSetting::query()->firstOrCreate([], ['store_name' => 'Noure']);
 
         return response()->json([
-            'data' => $settings->only(['store_name', 'support_email', 'support_phone', 'whatsapp_number', 'instagram_url', 'default_currency']),
+            'data' => $settings->only(['store_name', 'announcement_text', 'announcement_url', 'announcement_is_active', 'support_email', 'support_phone', 'whatsapp_number', 'instagram_url', 'default_currency']),
             'meta' => (object) [],
             'message' => null,
         ]);

@@ -6,7 +6,20 @@ const API_URL = (
 type Envelope<T> = {
   data: T;
   message?: string | null;
-  meta?: { errors?: { message: string }[] };
+  meta?: { errors?: { code?: string; message: string }[] };
+};
+
+const cartErrorMessages: Record<string, string> = {
+  variant_not_found: "Varian produk tidak ditemukan.",
+  variant_unavailable: "Varian ini sedang tidak tersedia.",
+  insufficient_stock: "Jumlah yang dipilih melebihi stok yang tersedia.",
+  cart_item_not_found: "Produk tidak ditemukan di keranjang.",
+  currency_conflict: "Produk dengan mata uang berbeda tidak dapat digabungkan.",
+  discount_not_found: "Kode promo tidak ditemukan.",
+  discount_inactive: "Kode promo sedang tidak aktif.",
+  discount_expired: "Kode promo sudah kedaluwarsa.",
+  discount_minimum_not_met: "Nilai belanja belum memenuhi minimum promo.",
+  discount_usage_limit_reached: "Kuota penggunaan promo sudah habis.",
 };
 
 export class CartApiError extends Error {
@@ -49,13 +62,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const payload = (await response
     .json()
     .catch(() => null)) as Envelope<T> | null;
-  if (!response.ok)
+  if (!response.ok) {
+    const error = payload?.meta?.errors?.[0];
     throw new CartApiError(
       response.status,
-      payload?.meta?.errors?.[0]?.message ??
+      (error?.code ? cartErrorMessages[error.code] : null) ??
+        error?.message ??
         payload?.message ??
-        "The cart could not be updated.",
+        "Keranjang tidak dapat diperbarui.",
     );
+  }
   return payload?.data as T;
 }
 

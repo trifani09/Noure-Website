@@ -147,6 +147,10 @@ class CartService
 
     private function load(Cart $cart): Cart
     {
-        return $cart->load(['items.variant.product.images', 'items.variant.optionValues.option']);
+        return $cart->load([
+            'items.variant.product.images',
+            'items.variant.optionValues.option',
+            'items.variant.inventoryLevels.location',
+        ]);
     }
 }

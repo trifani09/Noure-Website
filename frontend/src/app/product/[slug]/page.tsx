@@ -86,10 +86,11 @@ export default async function ProductPage({ params }: Props) {
     })),
   };
   const detailSections = [
-    { title: "Description", body: item.description },
+    { title: "Deskripsi Produk", body: item.description },
     { title: "Material", body: item.material },
-    { title: "Care instructions", body: item.care_instructions },
-    { title: "Shipping information", body: item.shipping_information },
+    { title: "Cara Perawatan", body: item.care_instructions },
+    { title: "Informasi Pengiriman", body: item.shipping_information },
+    { title: "Kebijakan Komplain & Pengembalian", body: item.return_policy },
   ].filter((section) => section.body);
   return (
     <div className="page-shell pb-28 pt-8 md:py-14">
@@ -112,6 +113,10 @@ export default async function ProductPage({ params }: Props) {
         <ProductGallery product={item} />
         <div className="lg:sticky lg:top-28 lg:self-start">
           <p className="eyebrow text-plum">{item.brand ?? "Noure"}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {item.is_new && <span className="bg-ivory px-2 py-1 text-[9px] font-semibold uppercase tracking-wider">Baru</span>}
+            {item.is_best_seller && <span className="bg-ink px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-paper">Terlaris</span>}
+          </div>
           <h1 className="editorial-title mt-3 text-5xl leading-none md:text-6xl">
             {item.name}
           </h1>
@@ -148,7 +153,7 @@ export default async function ProductPage({ params }: Props) {
               {(item.brand || item.options.length > 0) && (
                 <details className="group py-5">
                   <summary className="focus-ring cursor-pointer list-none text-xs font-semibold uppercase tracking-widest">
-                    Product details
+                    Detail Produk
                     <span
                       aria-hidden
                       className="float-right transition group-open:rotate-45"
@@ -159,7 +164,7 @@ export default async function ProductPage({ params }: Props) {
                   <dl className="mt-4 space-y-3 text-sm text-muted">
                     {item.brand && (
                       <div className="flex justify-between gap-6">
-                        <dt>Brand</dt>
+                        <dt>Merek</dt>
                         <dd>{item.brand}</dd>
                       </div>
                     )}
@@ -184,7 +189,7 @@ export default async function ProductPage({ params }: Props) {
               href="/contact"
               className="text-xs text-muted underline underline-offset-4 hover:text-ink"
             >
-              Need help with this piece?
+              Butuh bantuan memilih produk?
             </Link>
             <ShareProductButton productName={item.name} />
           </div>
@@ -192,9 +197,9 @@ export default async function ProductPage({ params }: Props) {
       </div>
       {relatedProducts.length > 0 && (
         <section className="section-space">
-          <p className="eyebrow text-plum">Continue exploring</p>
+          <p className="eyebrow text-plum">Lanjutkan belanja</p>
           <h2 className="editorial-title mb-10 mt-3 text-4xl md:text-5xl">
-            You may also like
+            Mungkin kamu juga suka
           </h2>
           <ProductGrid products={relatedProducts} />
         </section>

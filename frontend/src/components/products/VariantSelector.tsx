@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatMoney } from "@/lib/format";
+import { SafeImage } from "@/components/common/SafeImage";
 import { QuantitySelector, useCart } from "@/features/cart";
 import type { ProductDetail } from "@/types/catalog";
 
@@ -59,10 +60,10 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
     setFeedback(null);
     try {
       await addItem(variant.public_id, quantity);
-      setFeedback("Added to your bag.");
+      setFeedback("Produk ditambahkan ke keranjang.");
       openDrawer();
     } catch {
-      setFeedback("We could not add this piece right now.");
+      setFeedback("Produk belum dapat ditambahkan. Silakan coba lagi.");
     } finally {
       setBusy(false);
     }
@@ -73,7 +74,7 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
         <span className="text-xl">
           {variant
             ? formatMoney(variant.price_amount, variant.currency)
-            : "Select options"}
+            : "Pilih varian"}
         </span>
         {variant?.compare_at_amount && (
           <span className="text-sm text-muted line-through">
@@ -93,13 +94,13 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
                     onClick={() => setSizeGuideOpen(true)}
                     className="focus-ring underline underline-offset-4 hover:text-ink"
                   >
-                    Size guide
+                    Panduan ukuran
                   </button>
                 )}
                 <span>
                   {option.values.find(
                     (value) => value.code === selected[option.code],
-                  )?.label ?? "Choose"}
+                  )?.label ?? "Pilih"}
                 </span>
               </span>
             </legend>
@@ -111,6 +112,15 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
                   const active = selected[option.code] === value.code;
                   const showSwatch =
                     option.code === "color" || Boolean(value.swatch_value);
+                  const imageVariant = product.variants.find((item) =>
+                    item.selected_options.some(
+                      (selectedOption) =>
+                        selectedOption.option_code === option.code && selectedOption.value_code === value.code,
+                    ),
+                  );
+                  const valueImage = option.code === "color"
+                    ? product.images.find((image) => image.variant_public_id === imageVariant?.public_id)
+                    : undefined;
                   return (
                     <button
                       type="button"
@@ -126,7 +136,11 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
                       }
                       className={`focus-ring relative flex min-h-10 items-center gap-2 border px-3 py-2 text-xs ${active ? "border-ink bg-ink text-paper" : "border-line"} ${!state.available ? "opacity-45 after:absolute after:left-2 after:right-2 after:top-1/2 after:h-px after:-rotate-12 after:bg-current" : ""}`}
                     >
-                      {showSwatch && (
+                      {valueImage ? (
+                        <span className="relative h-8 w-8 overflow-hidden rounded-full border border-current/20">
+                          <SafeImage fill sizes="32px" className="object-cover" src={valueImage.url} alt="" />
+                        </span>
+                      ) : showSwatch && (
                         <span
                           aria-hidden
                           className="h-4 w-4 rounded-full border border-current/20 bg-sand"
@@ -154,10 +168,10 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
           className="button-primary flex-1 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy
-            ? "Adding..."
+            ? "Menambahkan..."
             : variant?.available
-              ? "Add to cart"
-              : "Unavailable"}
+              ? "Tambah ke Keranjang"
+              : "Tidak Tersedia"}
         </button>
       </div>
       {variant && (
@@ -174,9 +188,12 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
           </span>
         </div>
       )}
+      {variant?.weight_grams !== null && variant?.weight_grams !== undefined && (
+        <p className="mt-3 text-xs text-muted">Berat produk: {variant.weight_grams} gram</p>
+      )}
       <div className="mt-6 grid grid-cols-2 gap-px border border-line bg-line text-center text-[10px] uppercase tracking-[.12em]">
-        <div className="bg-paper px-3 py-4">Secure payment</div>
-        <div className="bg-paper px-3 py-4">Shipping at checkout</div>
+        <div className="bg-paper px-3 py-4">Pembayaran aman</div>
+        <div className="bg-paper px-3 py-4">Ongkir dihitung saat checkout</div>
       </div>
       {feedback && (
         <p role="status" className="mt-4 text-sm text-plum">
@@ -187,10 +204,10 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
         <div className="mx-auto flex max-w-lg items-center gap-4">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[10px] uppercase tracking-widest text-muted">
-              {variant?.title ?? "Select options"}
+              {variant?.title ?? "Pilih varian"}
             </p>
             <p className="mt-0.5 text-sm font-semibold">
-              {variant ? formatMoney(variant.price_amount, variant.currency) : "Choose a variant"}
+              {variant ? formatMoney(variant.price_amount, variant.currency) : "Pilih varian"}
             </p>
           </div>
           <button
@@ -217,12 +234,12 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
           >
             <div className="flex items-start justify-between gap-6">
               <div>
-                <p className="eyebrow text-plum">Fit assistance</p>
-                <h2 id="size-guide-title" className="editorial-title mt-2 text-4xl">Size guide</h2>
+                <p className="eyebrow text-plum">Bantuan ukuran</p>
+                <h2 id="size-guide-title" className="editorial-title mt-2 text-4xl">Panduan ukuran</h2>
               </div>
               <button
                 type="button"
-                aria-label="Close size guide"
+                aria-label="Tutup panduan ukuran"
                 onClick={() => setSizeGuideOpen(false)}
                 className="focus-ring text-2xl"
               >
@@ -230,7 +247,7 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
               </button>
             </div>
             <p className="mt-6 text-sm leading-7 text-muted">
-              Available sizes for this piece are shown below. Check the product description for garment-specific measurements and fit notes.
+              Pilihan ukuran tersedia di bawah ini. Periksa deskripsi produk untuk detail ukuran setiap produk.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               {product.options.find((option) => option.code === "size")?.values.map((value) => (
@@ -238,7 +255,7 @@ export function VariantSelector({ product }: { product: ProductDetail }) {
               ))}
             </div>
             <Link href="/contact" className="mt-7 inline-block text-xs font-semibold uppercase tracking-widest underline underline-offset-4">
-              Ask for sizing help
+              Tanyakan ukuran
             </Link>
           </div>
         </div>

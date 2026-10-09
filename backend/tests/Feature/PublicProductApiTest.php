@@ -12,6 +12,7 @@ use App\Models\ProductImage;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\ProductVariant;
+use App\Models\StoreSetting;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -51,6 +52,7 @@ class PublicProductApiTest extends TestCase
             ->assertJsonPath('data.0.price.compare_at_amount', 449000)
             ->assertJsonPath('data.0.price.currency', 'IDR')
             ->assertJsonPath('data.0.available', true)
+            ->assertJsonPath('data.0.inventory_status', 'in_stock')
             ->assertJsonPath('data.0.secondary_image.url', url('/storage/products/luna-back.webp'))
             ->assertJsonPath('data.0.colors.0.code', 'cream')
             ->assertJsonPath('data.0.colors.0.swatch_value', '#F4E9D8')
@@ -85,6 +87,7 @@ class PublicProductApiTest extends TestCase
             ->assertJsonPath('data.variants.0.selected_options.0.value_code', 'cream')
             ->assertJsonPath('data.variants.0.available', true)
             ->assertJsonPath('data.variants.0.inventory_status', 'in_stock')
+            ->assertJsonPath('data.variants.0.weight_grams', $variant->weight_grams)
             ->assertJsonPath('data.material', 'Linen blend')
             ->assertJsonCount(1, 'data.variants');
     }
@@ -135,6 +138,17 @@ class PublicProductApiTest extends TestCase
         $this->assertTrue($bySlug[$available->slug]['available']);
         $this->assertFalse($bySlug[$unavailable->slug]['available']);
         $this->assertFalse($bySlug[$inactive->slug]['available']);
+    }
+
+    public function test_listing_exposes_low_stock_status_using_store_threshold(): void
+    {
+        StoreSetting::query()->create(['store_name' => 'Noure', 'low_stock_threshold' => 5]);
+        [$lowStock] = $this->createPublicProduct(['slug' => 'low-stock'], [], 5);
+        [$outOfStock] = $this->createPublicProduct(['slug' => 'out-of-stock'], [], 0);
+
+        $bySlug = collect($this->getJson('/api/v1/products')->assertOk()->json('data'))->keyBy('slug');
+        $this->assertSame('low_stock', $bySlug[$lowStock->slug]['inventory_status']);
+        $this->assertSame('out_of_stock', $bySlug[$outOfStock->slug]['inventory_status']);
     }
 
     public function test_category_filter_and_unknown_category_behavior(): void

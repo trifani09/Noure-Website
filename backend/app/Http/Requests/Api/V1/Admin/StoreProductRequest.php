@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1\Admin;
 
 use App\Http\Requests\Api\V1\CatalogRequest;
+use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -27,6 +28,11 @@ class StoreProductRequest extends CatalogRequest
             'status' => [$required, Rule::in(['draft', 'active', 'archived'])],
             'published_at' => ['sometimes', 'nullable', 'date'],
             'metadata' => ['sometimes', 'nullable', 'array'],
+            'metadata.material' => ['nullable', 'string', 'max:500'],
+            'metadata.motif' => ['nullable', Rule::in(['polos', 'motif'])],
+            'metadata.care_instructions' => ['nullable', 'string', 'max:3000'],
+            'metadata.shipping_information' => ['nullable', 'string', 'max:3000'],
+            'metadata.return_policy' => ['nullable', 'string', 'max:3000'],
             'categories' => [$updating ? 'sometimes' : 'present', 'array'],
             'categories.*.category_public_id' => ['required', 'string', 'distinct', Rule::exists('categories', 'public_id')->whereNull('deleted_at')],
             'categories.*.is_primary' => ['required', 'boolean'],
@@ -96,6 +102,27 @@ class StoreProductRequest extends CatalogRequest
             $data = $this->all();
             if (array_key_exists('categories', $data) && count(array_filter($data['categories'], fn ($c) => $c['is_primary'] ?? false)) !== (count($data['categories']) ? 1 : 0)) {
                 $validator->errors()->add('categories', 'Categories must have exactly one primary category.');
+            }
+            if (($data['status'] ?? null) === 'active') {
+                if (blank($data['description'] ?? null)) {
+                    $validator->errors()->add('description', 'An active product requires a description.');
+                }
+                $categoryIds = array_column($data['categories'] ?? [], 'category_public_id');
+                $validCategoryCount = Category::query()->whereIn('public_id', $categoryIds)->whereIn('slug', ['kerudung', 'pashmina'])->count();
+                if (count($categoryIds) !== 1 || $validCategoryCount !== 1) {
+                    $validator->errors()->add('categories', 'An active product must use exactly one Kerudung or Pashmina category.');
+                }
+                if (count($data['images'] ?? []) === 0) {
+                    $validator->errors()->add('images', 'An active product requires at least one image.');
+                }
+                foreach (['material', 'motif', 'care_instructions', 'shipping_information', 'return_policy'] as $field) {
+                    if (blank($data['metadata'][$field] ?? null)) {
+                        $validator->errors()->add("metadata.$field", "An active product requires $field.");
+                    }
+                }
+                if (! collect($data['variants'] ?? [])->contains(fn ($variant) => ($variant['is_active'] ?? false) && ($variant['price_amount'] ?? 0) > 0 && ($variant['weight_grams'] ?? 0) > 0)) {
+                    $validator->errors()->add('variants', 'An active product requires an active variant with a price and weight.');
+                }
             }
             if (! array_key_exists('variants', $data)) {
                 return;

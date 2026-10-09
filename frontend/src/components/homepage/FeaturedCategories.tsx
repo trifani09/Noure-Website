@@ -1,49 +1,46 @@
 import Link from "next/link";
 import { SafeImage } from "@/components/common/SafeImage";
-import { SectionHeading } from "../common/SectionHeading";
 import type { HomepageSection } from "@/types/catalog";
 export function FeaturedCategories({ section }: { section: HomepageSection }) {
-  if (!section.categories.length) return null;
+  const categories = ["kerudung", "pashmina"]
+    .map((slug) => section.categories.find((category) => category.slug === slug))
+    .filter((category): category is HomepageSection["categories"][number] => Boolean(category));
+  if (!categories.length) return null;
   return (
-    <section id="categories" className="page-shell section-space">
-      <SectionHeading
-        eyebrow="The edit"
-        title={section.configuration.heading ?? section.name}
-        body={section.configuration.body}
-      />
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {section.categories.map((category, index) => (
+    <section id="categories" className="page-shell py-14 md:py-20">
+      <div className="text-center">
+        <h2 className="text-lg font-semibold uppercase tracking-[.12em] md:text-xl">
+          {section.configuration.heading ?? "Pilih Kategori"}
+        </h2>
+        {section.configuration.body && (
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted">
+            {section.configuration.body}
+          </p>
+        )}
+      </div>
+      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 md:gap-7">
+        {categories.map((category) => (
           <Link
             href={`/category/${category.slug}`}
             key={category.public_id}
-            className={`focus-ring group relative overflow-hidden bg-ivory ${index === 0 ? "md:col-span-2" : ""}`}
+            className="focus-ring group block"
           >
-            <div
-              className={`relative ${index === 0 ? "aspect-[16/10] md:aspect-[16/9]" : "aspect-[4/5]"}`}
-            >
+            <div className="relative aspect-[4/3] overflow-hidden bg-ivory md:aspect-[5/4]">
               {category.image_url ? (
                 <SafeImage
                   fill
-                  sizes={
-                    index === 0
-                      ? "(max-width:768px) 100vw, 66vw"
-                      : "(max-width:768px) 100vw, 33vw"
-                  }
-                  className="object-cover transition duration-700 group-hover:scale-[1.025]"
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="object-cover transition duration-500 group-hover:scale-[1.03]"
                   src={category.image_url}
                   alt={category.name}
                 />
               ) : (
                 <div className="h-full bg-gradient-to-br from-sand to-taupe" />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 text-paper">
-                <p className="eyebrow text-paper/70">Collection</p>
-                <h3 className="editorial-title mt-2 text-3xl">
-                  {category.name}
-                </h3>
-              </div>
             </div>
+            <h3 className="mt-4 text-center text-base font-medium uppercase tracking-[.08em] group-hover:text-plum">
+              {category.name}
+            </h3>
           </Link>
         ))}
       </div>

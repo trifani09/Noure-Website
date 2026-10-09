@@ -163,7 +163,7 @@ function FilterForm({
           <option value="unavailable">Out of stock</option>
         </select>
       </div>
-      <input type="hidden" name="sort" value={values.sort ?? "newest"} />
+      <input type="hidden" name="sort" value={values.sort ?? "best_selling"} />
       <div>
         <button className="button-primary focus-ring w-full">Show results</button>
         <Link

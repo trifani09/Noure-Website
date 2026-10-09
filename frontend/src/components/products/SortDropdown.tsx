@@ -11,16 +11,12 @@ export function SortDropdown({
       <input type="hidden" name="category" value={params.category ?? ""} />
       <input type="hidden" name="min_price" value={params.min_price ?? ""} />
       <input type="hidden" name="max_price" value={params.max_price ?? ""} />
-      <input
-        type="hidden"
-        name="availability"
-        value={params.availability ?? ""}
-      />
+      <input type="hidden" name="availability" value={params.availability ?? ""} />
       <input type="hidden" name="color" value={params.color ?? ""} />
       <input type="hidden" name="size" value={params.size ?? ""} />
       <input type="hidden" name="discounted" value={params.discounted ?? ""} />
       <label className="sr-only" htmlFor="product-sort">
-        Sort products
+        Urutkan produk
       </label>
       <select
         id="product-sort"
@@ -28,16 +24,16 @@ export function SortDropdown({
         defaultValue={value}
         className="focus-ring border border-line bg-paper px-3 py-2.5 text-xs uppercase tracking-wider sm:px-4"
       >
-        <option value="newest">Newest</option>
-        <option value="best_selling">Best sellers</option>
-        <option value="oldest">Oldest</option>
-        <option value="price_asc">Price: low to high</option>
-        <option value="price_desc">Price: high to low</option>
-        <option value="name_asc">Name: A–Z</option>
-        <option value="name_desc">Name: Z–A</option>
+        <option value="best_selling">Terpopuler</option>
+        <option value="newest">Terbaru</option>
+        <option value="oldest">Terlama</option>
+        <option value="price_asc">Harga terendah</option>
+        <option value="price_desc">Harga tertinggi</option>
+        <option value="name_asc">Nama A–Z</option>
+        <option value="name_desc">Nama Z–A</option>
       </select>
       <button className="focus-ring border-b border-ink pb-1 text-xs uppercase tracking-wider hover:text-plum">
-        Apply
+        Terapkan
       </button>
     </form>
   );

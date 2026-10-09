@@ -22,7 +22,7 @@ export function MobileNavigation({
             NOURE
           </span>
           <button
-            aria-label="Close menu"
+            aria-label="Tutup menu"
             onClick={onClose}
             className="focus-ring text-2xl"
           >
@@ -32,11 +32,11 @@ export function MobileNavigation({
         <form action="/search" className="mt-10 flex border-b border-ink">
           <input
             name="q"
-            aria-label="Search the collection"
-            placeholder="Search the collection"
+            aria-label="Cari produk"
+            placeholder="Cari produk"
             className="w-full bg-transparent py-3 text-sm outline-none"
           />
-          <button className="text-xs uppercase tracking-widest">Search</button>
+          <button className="text-xs uppercase tracking-widest">Cari</button>
         </form>
         <nav className="mt-10 flex flex-col">
           {links.map((link) => (

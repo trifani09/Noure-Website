@@ -3,8 +3,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { CartDrawer, CartProvider } from "@/features/cart";
-import { getCategories } from "@/features/categories";
-import type { Category } from "@/types/catalog";
+import { getStorefrontSettings } from "@/services/api";
+import type { StorefrontSettings } from "@/types/catalog";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,19 +18,24 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  let categories: Category[] = [];
+  let settings: StorefrontSettings = {
+    store_name: "Noure",
+    announcement_text: "Dapatkan harga eksklusif hanya di website",
+    announcement_url: "/products",
+    announcement_is_active: true,
+  };
   try {
-    categories = (await getCategories({ per_page: 12, sort: "position" })).data;
+    settings = await getStorefrontSettings();
   } catch {
     // Navigation remains usable while the catalog API is unavailable.
   }
 
   return (
-    <html lang="en" className="antialiased">
-      <body>
+    <html lang="id" className="antialiased">
+      <body suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
-            <Header categories={categories} />
+            <Header settings={settings} />
             <CartDrawer />
             <main className="min-h-[70vh]">{children}</main>
             <Footer />

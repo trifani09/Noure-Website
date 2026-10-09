@@ -57,13 +57,15 @@ class DevelopmentCatalogSeeder extends Seeder
     private function seedCategories(): array
     {
         $definitions = [
-            ['Dresses', 'dresses', 'Refined dresses for everyday moments and special occasions.', 10, true, null],
-            ['Midi Dresses', 'midi-dresses', 'Versatile midi silhouettes with considered details.', 10, true, 'dresses'],
-            ['Maxi Dresses', 'maxi-dresses', 'Flowing full-length dresses for effortless dressing.', 20, true, 'dresses'],
-            ['Tops', 'tops', 'Blouses, knits, and elevated everyday tops.', 20, true, null],
-            ['Bottoms', 'bottoms', 'Tailored trousers and skirts designed to mix and match.', 30, true, null],
-            ['Outerwear', 'outerwear', 'Light layers and structured outerwear.', 40, true, null],
-            ['Accessories', 'accessories', 'Finishing pieces for a considered wardrobe.', 50, true, null],
+            ['Kerudung', 'kerudung', 'Koleksi kerudung Noure untuk melengkapi gaya sehari-hari.', 10, true, null],
+            ['Pashmina', 'pashmina', 'Koleksi pashmina Noure dengan pilihan bahan dan warna.', 20, true, null],
+            ['Dresses', 'dresses', 'Legacy development category.', 30, false, null],
+            ['Midi Dresses', 'midi-dresses', 'Legacy development category.', 10, false, 'dresses'],
+            ['Maxi Dresses', 'maxi-dresses', 'Legacy development category.', 20, false, 'dresses'],
+            ['Tops', 'tops', 'Legacy development category.', 40, false, null],
+            ['Bottoms', 'bottoms', 'Legacy development category.', 50, false, null],
+            ['Outerwear', 'outerwear', 'Legacy development category.', 60, false, null],
+            ['Accessories', 'accessories', 'Legacy development category.', 70, false, null],
             ['Preview Collection', 'preview-collection', 'Development-only inactive category for visibility checks.', 90, false, null],
         ];
         $categories = [];

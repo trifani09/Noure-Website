@@ -5,6 +5,7 @@ namespace App\Http\Resources\Api\V1;
 use App\Discounts\DiscountException;
 use App\Discounts\DiscountService;
 use App\Models\Customer;
+use App\Models\StoreSetting;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -14,13 +15,22 @@ class CartResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $items = $this->items->map(function ($item): array {
+        $lowStockThreshold = StoreSetting::query()->value('low_stock_threshold') ?? 5;
+        $items = $this->items->map(function ($item) use ($lowStockThreshold): array {
             $variant = $item->variant;
             $product = $variant->product;
             $image = $product->images->firstWhere('variant_id', $variant->id)
                 ?? $product->images->firstWhere('is_primary', true)
                 ?? $product->images->sortBy('sort_order')->first();
             $subtotal = $variant->price_amount * $item->quantity;
+            $availableQuantity = $variant->inventoryLevels
+                ->filter(fn ($level) => $level->location?->is_active)
+                ->sum(fn ($level) => max($level->on_hand - $level->reserved - $level->safety_stock, 0));
+            $inventoryStatus = match (true) {
+                $availableQuantity < 1 => 'out_of_stock',
+                $availableQuantity <= $lowStockThreshold => 'low_stock',
+                default => 'in_stock',
+            };
 
             return [
                 'id' => $item->id,
@@ -33,6 +43,8 @@ class CartResource extends JsonResource
                     'public_id' => $variant->public_id,
                     'sku' => $variant->sku,
                     'title' => $variant->title,
+                    'available_quantity' => $availableQuantity,
+                    'inventory_status' => $inventoryStatus,
                     'selected_options' => $variant->optionValues->sortBy('option.sort_order')->map(fn ($value) => [
                         'option_code' => $value->option->code,
                         'option_name' => $value->option->name,

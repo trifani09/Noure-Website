@@ -32,7 +32,7 @@ export function ProductGallery({ product }: { product: ProductDetail }) {
       <button
         type="button"
         onClick={() => setZoomed(true)}
-        aria-label={`Zoom ${current.alt_text ?? product.name}`}
+        aria-label={`Perbesar ${current.alt_text ?? product.name}`}
         className="focus-ring group relative block aspect-[4/5] w-full cursor-zoom-in overflow-hidden bg-ivory"
       >
         <SafeImage
@@ -44,18 +44,18 @@ export function ProductGallery({ product }: { product: ProductDetail }) {
           alt={current.alt_text ?? product.name}
         />
         <span className="absolute bottom-4 right-4 bg-paper/90 px-3 py-2 text-[10px] uppercase tracking-widest">
-          View larger
+          Perbesar
         </span>
       </button>
       {images.length > 1 && (
         <div
           className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2"
-          aria-label="Product images"
+          aria-label="Foto produk"
         >
           {images.map((image, index) => (
             <button
               type="button"
-              aria-label={`Show image ${index + 1} of ${images.length}`}
+              aria-label={`Tampilkan foto ${index + 1} dari ${images.length}`}
               aria-pressed={index === active}
               key={`${image.url}-${index}`}
               onClick={() => setActive(index)}
@@ -76,13 +76,13 @@ export function ProductGallery({ product }: { product: ProductDetail }) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Enlarged product image"
+          aria-label="Foto produk diperbesar"
           className="fixed inset-0 z-[70] grid place-items-center bg-ink/95 p-4 md:p-10"
           onClick={() => setZoomed(false)}
         >
           <button
             type="button"
-            aria-label="Close image zoom"
+            aria-label="Tutup foto"
             className="focus-ring absolute right-5 top-5 z-10 px-3 py-2 text-3xl text-paper"
             onClick={() => setZoomed(false)}
           >

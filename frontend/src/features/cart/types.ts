@@ -15,6 +15,8 @@ export type CartItem = {
     public_id: string;
     sku: string;
     title: string | null;
+    available_quantity: number;
+    inventory_status: "in_stock" | "low_stock" | "out_of_stock";
     selected_options: CartOption[];
   };
   image: { url: string; alt_text: string | null } | null;

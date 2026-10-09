@@ -16,6 +16,6 @@ class UpdateStoreSettingRequest extends CatalogRequest
      */
     public function rules(): array
     {
-        return ['store_name' => ['required', 'string', 'max:160'], 'support_email' => ['nullable', 'email', 'max:255'], 'support_phone' => ['nullable', 'string', 'max:50'], 'whatsapp_number' => ['nullable', 'string', 'max:50'], 'instagram_url' => ['nullable', 'url', 'max:2048'], 'default_currency' => ['required', 'string', 'size:3'], 'timezone' => ['required', 'timezone'], 'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:100000'], 'order_prefix' => ['required', 'alpha_num', 'max:20']];
+        return ['store_name' => ['required', 'string', 'max:160'], 'announcement_text' => ['nullable', 'string', 'max:255'], 'announcement_url' => ['nullable', 'string', 'max:2048', 'starts_with:/'], 'announcement_is_active' => ['required', 'boolean'], 'support_email' => ['nullable', 'email', 'max:255'], 'support_phone' => ['nullable', 'string', 'max:50'], 'whatsapp_number' => ['nullable', 'string', 'max:50'], 'instagram_url' => ['nullable', 'url', 'max:2048'], 'default_currency' => ['required', 'string', 'size:3'], 'timezone' => ['required', 'timezone'], 'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:100000'], 'order_prefix' => ['required', 'alpha_num', 'max:20']];
     }
 }

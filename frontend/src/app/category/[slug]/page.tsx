@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { SafeImage } from "@/components/common/SafeImage";
+import { CategoryTabs } from "@/components/products/CategoryTabs";
 import { Pagination } from "@/components/products/Pagination";
 import { ProductGrid } from "@/components/products/ProductGrid";
-import { getCategory, getProducts, StorefrontApiError } from "@/services/api";
+import { getCategories, getCategory, getProducts, StorefrontApiError } from "@/services/api";
 export const dynamic = "force-dynamic";
 type Props = {
   params: Promise<{ slug: string }>;
@@ -35,12 +36,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const page = (await searchParams).page ?? "1";
-  const [item, products] = await Promise.all([
+  const [item, products, categories] = await Promise.all([
     category(slug),
-    getProducts({ category: slug, page, per_page: 20 }),
+    getProducts({ category: slug, page, per_page: 20, sort: "best_selling" }),
+    getCategories({ per_page: 100, sort: "position" }),
   ]);
   return (
     <>
+      <CategoryTabs categories={categories.data} activeSlug={slug} />
       <div className="page-shell py-6">
         <Breadcrumb
           items={[{ label: "Shop", href: "/products" }, { label: item.name }]}

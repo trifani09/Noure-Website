@@ -21,14 +21,14 @@ class AdminProductApiTest extends TestCase
     {
         parent::setUp();
         $this->admin = User::factory()->create();
-        $this->category = Category::factory()->create();
+        $this->category = Category::factory()->create(['name' => 'Kerudung', 'slug' => 'kerudung']);
     }
 
     public function test_admin_can_create_list_and_view_a_product(): void
     {
         $created = $this->actingAs($this->admin)->postJson('/api/v1/admin/products', $this->payload())->assertCreated()->assertJsonMissingPath('data.id');
         $publicId = $created->json('data.public_id');
-        $this->getJson('/api/v1/admin/products?search=Luna&status=active&availability=unavailable&sort=price_asc')->assertOk()->assertJsonPath('meta.pagination.total', 1)->assertJsonPath('data.0.variant_count', 2);
+        $this->getJson('/api/v1/admin/products?search=Noure&status=active&availability=unavailable&sort=price_asc')->assertOk()->assertJsonPath('meta.pagination.total', 1)->assertJsonPath('data.0.variant_count', 2);
         $this->getJson("/api/v1/admin/products/$publicId")->assertOk()->assertJsonPath('data.options.0.code', 'color')->assertJsonCount(2, 'data.variants');
     }
 
@@ -63,7 +63,7 @@ class AdminProductApiTest extends TestCase
         $invalid = $this->payload();
         $invalid['categories'][0]['category_public_id'] = '01INVALIDPUBLICID0000000000';
         $this->actingAs($this->admin)->postJson('/api/v1/admin/products', $invalid)->assertUnprocessable()->assertJsonPath('meta.errors.0.field', 'categories.0.category_public_id');
-        Product::factory()->create(['slug' => 'luna-dress']);
+        Product::factory()->create(['slug' => 'noure-kerudung']);
         $this->postJson('/api/v1/admin/products', $this->payload())->assertUnprocessable()->assertJsonPath('meta.errors.0.field', 'slug');
     }
 
@@ -98,6 +98,24 @@ class AdminProductApiTest extends TestCase
         $payload = $this->payload();
         $payload['variants'][0]['compare_at_amount'] = $payload['variants'][0]['price_amount'];
         $this->actingAs($this->admin)->postJson('/api/v1/admin/products', $payload)->assertUnprocessable()->assertJsonPath('meta.errors.0.field', 'variants.0.compare_at_amount');
+    }
+
+    public function test_active_product_requires_complete_storefront_information(): void
+    {
+        $otherCategory = Category::factory()->create(['name' => 'Other', 'slug' => 'other']);
+        $payload = $this->payload();
+        $payload['description'] = null;
+        $payload['metadata'] = null;
+        $payload['images'] = [];
+        $payload['categories'] = [['category_public_id' => $otherCategory->public_id, 'is_primary' => true, 'sort_order' => 0]];
+        $payload['variants'][0]['weight_grams'] = null;
+        $payload['variants'][1]['weight_grams'] = null;
+
+        $response = $this->actingAs($this->admin)->postJson('/api/v1/admin/products', $payload)->assertUnprocessable();
+        $fields = collect($response->json('meta.errors'))->pluck('field')->all();
+        foreach (['description', 'metadata.material', 'metadata.motif', 'metadata.care_instructions', 'metadata.shipping_information', 'metadata.return_policy', 'categories', 'images', 'variants'] as $field) {
+            $this->assertContains($field, $fields);
+        }
     }
 
     public function test_cross_product_variant_id_is_rejected_on_update(): void
@@ -238,8 +256,8 @@ class AdminProductApiTest extends TestCase
 
     private function payload(): array
     {
-        return ['name' => 'Luna Dress', 'slug' => 'luna-dress', 'short_description' => 'Linen dress', 'description' => 'A dress.', 'brand' => 'Noure', 'status' => 'active', 'published_at' => now()->toISOString(), 'metadata' => null,
-            'categories' => [['category_public_id' => $this->category->public_id, 'is_primary' => true, 'sort_order' => 0]], 'images' => [],
+        return ['name' => 'Noure Kerudung', 'slug' => 'noure-kerudung', 'short_description' => 'Kerudung Noure', 'description' => 'Kerudung nyaman untuk penggunaan sehari-hari.', 'brand' => 'Noure', 'status' => 'active', 'published_at' => now()->toISOString(), 'metadata' => ['material' => 'Voal premium', 'motif' => 'polos', 'care_instructions' => 'Cuci dengan tangan.', 'shipping_information' => 'Dikirim dalam 1-2 hari kerja.', 'return_policy' => 'Sertakan video unboxing untuk komplain.'],
+            'categories' => [['category_public_id' => $this->category->public_id, 'is_primary' => true, 'sort_order' => 0]], 'images' => [['path' => 'products/noure-kerudung.webp', 'alt_text' => 'Noure Kerudung', 'width' => 1200, 'height' => 1500, 'mime_type' => 'image/webp', 'sort_order' => 0, 'is_primary' => true, 'variant_sku' => null]],
             'options' => [['name' => 'Color', 'code' => 'color', 'sort_order' => 0, 'values' => [['label' => 'Cream', 'code' => 'cream', 'swatch_value' => '#fff', 'sort_order' => 0], ['label' => 'Black', 'code' => 'black', 'swatch_value' => '#000', 'sort_order' => 1]]]],
             'variants' => [['sku' => 'LUNA-CREAM', 'title' => 'Cream', 'option_values' => ['color' => 'cream'], 'price_amount' => 399000, 'compare_at_amount' => 449000, 'currency' => 'IDR', 'barcode' => null, 'weight_grams' => 400, 'is_active' => true, 'is_default' => true], ['sku' => 'LUNA-BLACK', 'title' => 'Black', 'option_values' => ['color' => 'black'], 'price_amount' => 409000, 'compare_at_amount' => null, 'currency' => 'IDR', 'barcode' => null, 'weight_grams' => 400, 'is_active' => true, 'is_default' => false]]];
     }

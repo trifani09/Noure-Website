@@ -32,6 +32,13 @@ class PublicProductListResource extends JsonResource
                 'label' => $value->label,
                 'swatch_value' => $value->swatch_value,
             ])->values();
+        $availableQuantity = $this->variants->sum(fn ($variant) => $variant->inventoryLevels->sum(
+            fn ($level) => max(0, $level->on_hand - $level->reserved - $level->safety_stock)
+        ));
+        $lowStockThreshold = (int) ($this->public_low_stock_threshold ?? 5);
+        $inventoryStatus = $availableQuantity === 0
+            ? 'out_of_stock'
+            : ($availableQuantity <= $lowStockThreshold ? 'low_stock' : 'in_stock');
 
         return [
             'public_id' => $this->public_id,
@@ -66,6 +73,7 @@ class PublicProductListResource extends JsonResource
                 'currency' => $defaultVariant->currency,
             ],
             'available' => (bool) $this->public_available,
+            'inventory_status' => $inventoryStatus,
             'is_new' => $this->published_at?->greaterThanOrEqualTo(now()->subDays(30)) ?? false,
             'is_best_seller' => (int) $this->sold_quantity > 0,
             'colors' => $colors,

@@ -39,6 +39,7 @@ export type ProductSummary = {
     currency: string;
   };
   available: boolean;
+  inventory_status: "in_stock" | "low_stock" | "out_of_stock";
   is_new: boolean;
   is_best_seller: boolean;
   colors: ProductFilterOption[];
@@ -78,6 +79,7 @@ export type ProductVariant = {
   price_amount: number;
   compare_at_amount: number | null;
   currency: string;
+  weight_grams: number | null;
   available: boolean;
   inventory_status: "in_stock" | "low_stock" | "out_of_stock";
   is_default: boolean;
@@ -91,6 +93,8 @@ export type ProductDetail = Omit<
   material?: string | null;
   care_instructions?: string | null;
   shipping_information?: string | null;
+  return_policy?: string | null;
+  motif?: "polos" | "motif" | null;
   categories: (Pick<Category, "public_id" | "name" | "slug"> & {
     is_primary: boolean;
   })[];
@@ -140,4 +144,10 @@ export type HomepageSection = {
 export type Homepage = {
   hero_banners: HomepageBanner[];
   sections: HomepageSection[];
+};
+export type StorefrontSettings = {
+  store_name: string;
+  announcement_text: string | null;
+  announcement_url: string | null;
+  announcement_is_active: boolean;
 };

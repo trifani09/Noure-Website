@@ -10,7 +10,7 @@ Starter monorepo for the Noure public site, administration UI, and API.
 | `admin/` | Vite, React, TypeScript, Tailwind CSS | `http://localhost:5173` |
 | `backend/` | Laravel API, MySQL | `http://localhost:8000` |
 
-The browser applications communicate with the Laravel API. Their API base URLs are configured by `NEXT_PUBLIC_API_URL` and `VITE_API_URL` respectively.
+The browser applications communicate with the Laravel API. Their API base URLs are configured by `NEXT_PUBLIC_API_URL` and `VITE_API_URL` respectively. The admin uses `VITE_STOREFRONT_URL` for product preview links.
 
 ## Prerequisites
 

@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { MobileNavigation, type NavigationItem } from "@/components/layout/MobileNavigation";
 import { useCart } from "@/features/cart";
-import type { Category } from "@/types/catalog";
+import type { StorefrontSettings } from "@/types/catalog";
 
 const mainLinks: NavigationItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/products?sort=newest", label: "New arrivals" },
-  { href: "/products?sort=best_selling", label: "Best sellers" },
-  { href: "/products", label: "All product" },
+  { href: "/products", label: "Semua Produk" },
+  { href: "/category/kerudung", label: "Kerudung" },
+  { href: "/category/pashmina", label: "Pashmina" },
+  { href: "/products?sort=newest", label: "Produk Terbaru" },
+  { href: "/products?sort=best_selling", label: "Terlaris" },
 ];
 
 const desktopNavItemClass =
@@ -28,69 +29,56 @@ function AccountIcon() {
   return <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.4]"><circle cx="12" cy="7" r="4" /><path d="M4.5 21v-2a7.5 7.5 0 0 1 15 0v2" /></svg>;
 }
 
-export function Header({ categories = [] }: { categories?: Category[] }) {
+export function Header({ settings }: { settings?: StorefrontSettings }) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { cart, openDrawer } = useCart();
   const mobileLinks: NavigationItem[] = [
-    ...mainLinks.slice(0, 3),
-    ...categories.map((category) => ({ href: `/category/${category.slug}`, label: category.name })),
-    mainLinks[3],
-    { href: "/account", label: "Account" },
+    ...mainLinks,
+    { href: "/account", label: "Akun Saya" },
   ];
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur-md">
-        <div className="page-shell flex h-[4.5rem] items-center justify-between">
-          <button aria-label="Open menu" onClick={() => setOpen(true)} className="focus-ring p-2 lg:hidden">
+      <header className="sticky top-0 z-40 bg-paper/95 backdrop-blur-md">
+        {settings?.announcement_is_active && settings.announcement_text && (
+          <Link
+            href={settings.announcement_url ?? "/products"}
+            className="block bg-ink px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[.16em] text-paper hover:text-rose"
+          >
+            {settings.announcement_text}
+          </Link>
+        )}
+        <div className="border-b border-line">
+          <div className="page-shell flex h-[4.5rem] items-center justify-between">
+          <button aria-label="Buka menu" onClick={() => setOpen(true)} className="focus-ring p-2 xl:hidden">
             <span className="block h-px w-6 bg-ink" /><span className="mt-1.5 block h-px w-6 bg-ink" />
           </button>
 
-          <nav className="hidden h-full items-center gap-9 lg:flex" aria-label="Main navigation">
-            {mainLinks.slice(0, 3).map((link) => (
+          <nav className="hidden h-full items-center gap-6 xl:flex" aria-label="Navigasi utama">
+            {mainLinks.map((link) => (
               <Link className={desktopNavItemClass} key={link.label} href={link.href}>{link.label}</Link>
             ))}
-            <div className="group static flex h-full items-center">
-              <button className={`${desktopNavItemClass} gap-2`} type="button">
-                Categories
-                <svg aria-hidden viewBox="0 0 12 8" className="h-2 w-3 fill-none stroke-current stroke-[1.4]"><path d="m1 1.5 5 5 5-5" /></svg>
-              </button>
-              <div className="invisible absolute inset-x-0 top-full translate-y-2 border-y border-line bg-paper opacity-0 shadow-[0_18px_45px_rgba(33,28,26,.12)] transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                <div className="page-shell grid grid-cols-[13rem_1fr] gap-12 py-8">
-                  <div className="border-r border-line pr-8">
-                    <p className="eyebrow text-plum">Shop Noure</p>
-                    <p className="mt-3 text-sm leading-6 text-muted">Explore the collection by silhouette and occasion.</p>
-                    <Link href="/products" className="mt-6 inline-block text-xs font-semibold uppercase tracking-[.12em] underline underline-offset-4">View all products</Link>
-                  </div>
-                  <div className="grid grid-cols-3 gap-x-8">
-                    {categories.map((category) => (
-                      <Link key={category.public_id} href={`/category/${category.slug}`} className="border-b border-line px-1 py-3 text-xs uppercase tracking-[.08em] hover:text-plum">{category.name}</Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Link className={desktopNavItemClass} href="/products">All product</Link>
           </nav>
 
           <Link href="/" aria-label="Noure home" className="focus-ring editorial-title absolute left-1/2 -translate-x-1/2 text-2xl tracking-[.18em]">NOURE</Link>
 
           <div className="flex items-center gap-5">
-            <button type="button" aria-label="Search" onClick={() => setSearchOpen((value) => !value)} className="focus-ring hover:text-plum"><SearchIcon /></button>
-            <button type="button" aria-label={`Bag${cart?.item_count ? `, ${cart.item_count} items` : ""}`} onClick={openDrawer} className="focus-ring relative hover:text-plum">
+            <button type="button" aria-label="Cari" onClick={() => setSearchOpen((value) => !value)} className="focus-ring hover:text-plum"><SearchIcon /></button>
+            <button type="button" aria-label={`Keranjang${cart?.item_count ? `, ${cart.item_count} produk` : ""}`} onClick={openDrawer} className="focus-ring relative hover:text-plum">
               <BagIcon />
               {!!cart?.item_count && <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-ink px-1 text-[9px] text-paper">{cart.item_count}</span>}
             </button>
-            <Link href="/account" aria-label="Account" className="focus-ring hidden hover:text-plum sm:block"><AccountIcon /></Link>
+            <Link href="/account" aria-label="Akun saya" className="focus-ring hidden hover:text-plum sm:block"><AccountIcon /></Link>
+          </div>
           </div>
         </div>
         {searchOpen && (
           <form action="/search" className="border-t border-line bg-paper">
             <div className="page-shell flex items-center py-4">
               <SearchIcon />
-              <input autoFocus name="q" aria-label="Search products" placeholder="Search the Noure collection" className="ml-4 w-full bg-transparent py-2 text-sm outline-none" />
-              <button className="text-xs font-semibold uppercase tracking-widest">Search</button>
+              <input autoFocus name="q" aria-label="Cari produk" placeholder="Cari produk Noure" className="ml-4 w-full bg-transparent py-2 text-sm outline-none" />
+              <button className="text-xs font-semibold uppercase tracking-widest">Cari</button>
             </div>
           </form>
         )}

@@ -6,6 +6,7 @@ import type {
   ProductDetail,
   ProductFilters,
   ProductSummary,
+  StorefrontSettings,
 } from "@/types/catalog";
 const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
@@ -40,6 +41,9 @@ async function request<T>(path: string): Promise<Envelope<T>> {
 }
 export const getHomepage = cache(
   async () => (await request<Homepage>("/homepage")).data,
+);
+export const getStorefrontSettings = cache(
+  async () => (await request<StorefrontSettings>("/storefront/settings")).data,
 );
 export async function getProducts(
   params: Record<string, string | number | undefined> = {},

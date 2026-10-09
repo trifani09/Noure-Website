@@ -46,7 +46,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCart(await getCart());
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Unable to load your cart.",
+        caught instanceof Error ? caught.message : "Keranjang tidak dapat dimuat.",
       );
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setError(
             caught instanceof Error
               ? caught.message
-              : "Unable to load your cart.",
+              : "Keranjang tidak dapat dimuat.",
           );
       })
       .finally(() => {
@@ -82,7 +82,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const message =
         caught instanceof CartApiError || caught instanceof Error
           ? caught.message
-          : "Unable to update your cart.";
+          : "Keranjang tidak dapat diperbarui.";
       setError(message);
       throw caught;
     }

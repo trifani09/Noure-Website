@@ -42,6 +42,8 @@ class CartApiTest extends TestCase
         $this->postJson('/api/v1/cart/items', ['variant_public_id' => $this->variant->public_id, 'quantity' => 2])
             ->assertCreated()->assertJsonPath('data.items.0.quantity', 2)
             ->assertJsonPath('data.items.0.unit_price_amount', 150000)
+            ->assertJsonPath('data.items.0.variant.available_quantity', 8)
+            ->assertJsonPath('data.items.0.variant.inventory_status', 'in_stock')
             ->assertJsonPath('data.subtotal_amount', 300000);
     }
 

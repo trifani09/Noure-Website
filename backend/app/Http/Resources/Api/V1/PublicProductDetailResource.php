@@ -26,6 +26,8 @@ class PublicProductDetailResource extends JsonResource
             'material' => $this->metadata['material'] ?? null,
             'care_instructions' => $this->metadata['care_instructions'] ?? null,
             'shipping_information' => $this->metadata['shipping_information'] ?? null,
+            'return_policy' => $this->metadata['return_policy'] ?? null,
+            'motif' => $this->metadata['motif'] ?? null,
             'categories' => $this->categories->map(fn ($category) => [
                 'public_id' => $category->public_id,
                 'name' => $category->name,
@@ -68,6 +70,7 @@ class PublicProductDetailResource extends JsonResource
                 'price_amount' => $variant->price_amount,
                 'compare_at_amount' => $variant->compare_at_amount,
                 'currency' => $variant->currency,
+                'weight_grams' => $variant->weight_grams,
                 'available' => $this->variantAvailable($variant),
                 'inventory_status' => $this->variantInventoryStatus($variant),
                 'is_default' => (bool) $variant->is_default,

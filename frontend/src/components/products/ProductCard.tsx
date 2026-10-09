@@ -64,17 +64,27 @@ export function ProductCard({
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-1rem)] flex-col items-start gap-1.5 sm:left-3 sm:top-3">
           {hasDiscount && (
             <span className="bg-plum px-2 py-1 text-[8px] font-semibold uppercase tracking-wider text-paper sm:text-[9px]">
-              {discountPercentage}% off
+              Diskon {discountPercentage}%
             </span>
           )}
           {product.is_best_seller && (
             <span className="bg-ink px-2 py-1 text-[8px] uppercase tracking-wider text-paper sm:text-[9px]">
-              Best seller
+              Terlaris
             </span>
           )}
           {product.is_new && !product.is_best_seller && (
             <span className="bg-paper px-2 py-1 text-[8px] uppercase tracking-wider sm:text-[9px]">
-              New
+              Baru
+            </span>
+          )}
+          {product.inventory_status === "low_stock" && (
+            <span className="bg-paper px-2 py-1 text-[8px] font-semibold uppercase tracking-wider text-plum sm:text-[9px]">
+              Stok menipis
+            </span>
+          )}
+          {product.inventory_status === "out_of_stock" && (
+            <span className="bg-paper px-2 py-1 text-[8px] font-semibold uppercase tracking-wider text-muted sm:text-[9px]">
+              Stok habis
             </span>
           )}
         </div>

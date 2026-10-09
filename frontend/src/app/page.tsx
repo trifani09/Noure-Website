@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { BrandStory } from "@/components/homepage/BrandStory";
 import { FallbackHero } from "@/components/homepage/FallbackHero";
 import { FeaturedCategories } from "@/components/homepage/FeaturedCategories";
 import { FeaturedProducts } from "@/components/homepage/FeaturedProducts";
 import { HeroBanner } from "@/components/homepage/HeroBanner";
-import { NewsletterSection } from "@/components/homepage/NewsletterSection";
-import { PromotionalBanner } from "@/components/homepage/PromotionalBanner";
-import { ServicePromise } from "@/components/homepage/ServicePromise";
 import { getHomepageExperience } from "@/services/homepageService";
 import type { HomepageSection } from "@/types/catalog";
 
@@ -26,19 +22,40 @@ export default async function Home() {
   const hasCmsContent =
     homepage.hero_banners.length > 0 || homepage.sections.length > 0;
   const hero = homepage.hero_banners[0];
-  const categorySection: HomepageSection = {
-    public_id: "catalog-categories",
-    type: "featured_categories",
-    name: "Shop by collection",
-    sort_order: 1,
-    configuration: {
-      heading: "Find your new favourite",
-      body: "Explore Noure through a considered edit of silhouettes and finishing touches.",
-    },
-    banners: [],
-    categories: categories.slice(0, 4),
-    products: [],
-  };
+  const cmsCategorySection = homepage.sections.find(
+    (section) =>
+      section.type === "featured_categories" &&
+      section.categories.some((category) =>
+        ["kerudung", "pashmina"].includes(category.slug),
+      ),
+  );
+  const cmsCategories = homepage.sections
+    .filter((section) => section.type === "featured_categories")
+    .flatMap((section) => section.categories);
+  const categorySlugs = ["kerudung", "pashmina"];
+  const categoryBySlug = new Map(
+    [...categories, ...cmsCategories]
+      .filter((category) => categorySlugs.includes(category.slug))
+      .map((category) => [category.slug, category]),
+  );
+  const cmsProductSections = homepage.sections.filter(
+    (section) => section.type === "featured_products" && section.products.length > 0,
+  );
+  const categorySection: HomepageSection = cmsCategorySection
+    ? { ...cmsCategorySection, categories: [...categoryBySlug.values()] }
+    : {
+        public_id: "catalog-categories",
+        type: "featured_categories",
+        name: "Shop by collection",
+        sort_order: 1,
+        configuration: {
+      heading: "Pilih Kategori",
+          body: "Temukan koleksi Noure sesuai gaya favoritmu.",
+        },
+        banners: [],
+        categories: [...categoryBySlug.values()],
+        products: [],
+      };
   const arrivalSection: HomepageSection = {
     public_id: "new-arrivals",
     type: "featured_products",
@@ -69,21 +86,9 @@ export default async function Home() {
     categories: [],
     products: products.slice(4, 8),
   };
-  const storySection: HomepageSection = {
-    public_id: "brand-story",
-    type: "brand_story",
-    name: "Quietly expressive",
-    sort_order: 4,
-    configuration: {
-      heading: "A quiet point of view",
-      body: "Noure brings together considered silhouettes and thoughtful details for a wardrobe that feels distinctly your own.",
-      cta_label: "Discover the collection",
-      cta_url: "/products",
-    },
-    banners: [],
-    categories: [],
-    products: [],
-  };
+  const productSections = cmsProductSections.length > 0
+    ? cmsProductSections.slice(0, 2)
+    : [arrivalSection, signatureSection].filter((section) => section.products.length > 0);
 
   return (
     <>
@@ -94,47 +99,10 @@ export default async function Home() {
           <FallbackHero />
         )
       )}
-      <ServicePromise />
-      {hasCmsContent ? (
-        homepage.sections.map((section) => {
-          switch (section.type) {
-            case "featured_categories":
-              return (
-                <FeaturedCategories key={section.public_id} section={section} />
-              );
-            case "featured_products":
-              return (
-                <FeaturedProducts key={section.public_id} section={section} />
-              );
-            case "promotional_banner":
-              return (
-                <PromotionalBanner key={section.public_id} section={section} />
-              );
-            case "brand_story":
-              return <BrandStory key={section.public_id} section={section} />;
-            default:
-              return null;
-          }
-        })
-      ) : (
-        <>
-          <FeaturedCategories section={categorySection} />
-          <FeaturedProducts section={arrivalSection} />
-          <BrandStory
-            section={storySection}
-            imageUrl={
-              products.find((product) => product.primary_image)?.primary_image
-                ?.url
-            }
-          />
-          {signatureSection.products.length > 0 && (
-            <div className="bg-paper">
-              <FeaturedProducts section={signatureSection} />
-            </div>
-          )}
-        </>
-      )}
-      <NewsletterSection />
+      <FeaturedCategories section={categorySection} />
+      {productSections.map((section) => (
+        <FeaturedProducts key={section.public_id} section={section} />
+      ))}
     </>
   );
 }
